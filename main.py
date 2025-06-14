@@ -21,6 +21,7 @@ app.add_middleware(
     allow_methods=["*"],              # GET, POST 등 모든 메서드 허용
     allow_headers=["*"],              # 헤더 허용
 )
+
 @app.get("/hello")
 def hello():
     return {"message": "Hello, World!"}

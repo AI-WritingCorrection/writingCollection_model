@@ -2,6 +2,8 @@ from sqlalchemy import Column, Integer, String, DateTime, Enum
 from sqlalchemy.orm import relationship
 from domain.typeEnum import AuthProvider
 from . import Base
+from domain.practiceRecord import PracticeRecord
+from domain.missionRecord import MissionRecord
 
 class User(Base):
     __tablename__ = "users"

@@ -7,7 +7,8 @@ from domain.typeEnum import AuthProvider
 
 #User 가입할 때 DTO
 class UserCreate(BaseModel):
-    firebase_uid: str
+    id_token: str
+    # firebase_uid: str
     email: str
     nickname: str
     profile_pic: Optional[str]
@@ -17,15 +18,12 @@ class UserCreate(BaseModel):
 # User 응답용 DTO(ex. 마이페이지)
 class UserResponse(BaseModel):
     user_id: int
-    firebase_uid: str
     email: str
     nickname: str
     profile_pic: Optional[str]
-    birthdate: datetime
-    provider: AuthProvider
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 

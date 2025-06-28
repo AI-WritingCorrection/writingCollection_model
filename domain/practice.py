@@ -10,6 +10,6 @@ class Practice(Base):
     practice_id = Column(Integer, primary_key=True, index=True)
     practice_text = Column(String(500), nullable=False)
     practice_type = Column(Enum(WritingType), nullable=False)
-    practice__character = Column(String(10), nullable=False)
+    practice_character = Column(String(100), nullable=False)
 
     practice_records = relationship("PracticeRecord", back_populates="practice", cascade="all, delete-orphan")

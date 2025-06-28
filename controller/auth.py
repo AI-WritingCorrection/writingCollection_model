@@ -26,6 +26,7 @@ class TokenPayload(BaseModel):
 
 @router.post("/login", response_model=AuthResponse)
 def login(payload: TokenPayload, db: Session = Depends(get_db)):
+    #print("received payload:", payload)
     # 1) Firebase ID 토큰 검증
     decoded = verify_firebase_token(payload.id_token)
     if not decoded:
@@ -66,16 +67,6 @@ def signup(
     if not decoded:
         raise HTTPException(401, "유효하지 않은 토큰입니다.")
     uid = decoded["uid"]
-    # new_user = {
-    #     "id_token": payload.id_token,  # Firebase ID 토큰
-    #     "provider":     payload.provider,
-    #     "email":        payload.email,
-    #     "nickname":     payload.nickname,
-    #     "birthdate":    payload.birthdate,
-    #     "profile_pic":  payload.profile_pic,
-    # }
-    #new_user = create_user(db, new_user)
-
     existing = get_user_by_firebase_uid(db, uid)
     if existing:
         raise HTTPException(400, "이미 가입된 계정입니다.")

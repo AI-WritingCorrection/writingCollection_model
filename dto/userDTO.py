@@ -18,12 +18,9 @@ class UserCreate(BaseModel):
 # User 응답용 DTO(ex. 마이페이지)
 class UserResponse(BaseModel):
     user_id: int
-    firebase_uid: str
     email: str
     nickname: str
     profile_pic: Optional[str]
-    birthdate: datetime
-    provider: AuthProvider
     
     class Config:
         from_attributes = True

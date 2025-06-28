@@ -10,7 +10,7 @@ class Step(Base):
     step_id = Column(Integer, primary_key=True, index=True)
     step_mission = Column(String(500), nullable=False)
     step_type = Column(Enum(WritingType), nullable=False)
-    step_charcter = Column(String(10), nullable=False)
+    step_character = Column(String(100), nullable=False)
     step_text = Column(String(500), nullable=False)
     step_time = Column(Integer, nullable=True, default=120)
 

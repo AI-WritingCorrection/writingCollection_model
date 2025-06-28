@@ -1,5 +1,6 @@
-from models import Metadata, Offset  # 위에서 정의한 클래스
-import base64
+from dto.resultDTO import ResultCreate
+ # 위에서 정의한 클래스
+ # import base64
 
 sample_data = {
     "user_id": "user123",
@@ -28,12 +29,12 @@ sample_data = {
 }
 
 # 파싱 테스트
-meta = Metadata(**sample_data)
+meta = ResultCreate(**sample_data)
 
 print("✅ Metadata 모델 파싱 성공!")
 print(f"사용자 ID: {meta.user_id}")
 print(f"연습 텍스트: {meta.practice_text}")
-print(f"첫 셀 이미지 수: {len(meta.cellImages['0'])}장")
-print(f"첫 번째 셀의 첫 이미지(Base64 일부): {meta.cellImages['0'][0][:30]}...")
-print(f"첫 번째 셀의 첫 시작 좌표: {meta.firstAndLastStroke['0'][0]}")
-print("세부 획 수:", meta.detailedStrokeCounts)
+print(f"첫 셀 이미지 수: {len(meta.cell_images['0'])}장")
+print(f"첫 번째 셀의 첫 이미지(Base64 일부): {meta.cell_images['0'][0][:30]}...")
+print(f"첫 번째 셀의 첫 시작 좌표: {meta.firstandlast_stroke['0'][0]}")
+print("세부 획 수:", meta.detailed_strokecounts)

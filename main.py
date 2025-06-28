@@ -1,8 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
+import controller.evaluation  as evaluate
+import controller.auth as auth
+import controller.get_fromDB as loadData
 
 #http://127.0.0.1:8000/docs
-app = FastAPI()
+app = FastAPI(title="AI-HandWriting-Evaluation")
+app.include_router(evaluate.router, prefix="/api/step", tags=["Evaluation"])
+app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
+app.include_router(loadData.router, prefix="/api/data", tags=["Data"])
 
 # 허용할 출처(Origin) 목록을 정의합니다. 
 origins = [
@@ -10,8 +17,6 @@ origins = [
     "http://127.0.0.1:3000",
     "http://10.0.2.2:3000",
     "http://localhost:8000",
-    # 필요 시 추가
-    "*",  # 개발 중에는 모든 출처를 허용할 수도 있지만, 운영환경에선 최대한 제한할 것
 ]
 
 app.add_middleware(
@@ -22,6 +27,5 @@ app.add_middleware(
     allow_headers=["*"],              # 헤더 허용
 )
 
-@app.get("/hello")
-def hello():
-    return {"message": "Hello, World!"}
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

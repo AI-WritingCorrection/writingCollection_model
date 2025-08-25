@@ -17,4 +17,9 @@ uvicorn==0.34.3
 uvloop==0.21.0
 watchfiles==1.0.5
 websockets==15.0.1
-easyocr>=1.7.0
+easyocr>=1.7.0 
+-f https://download.pytorch.org/whl/cpu/torch_stable.html
+torch==2.7.1
+SQLAlchemy==2.0.41
+psycopg2-binary
+firebase_admin==6.9.0

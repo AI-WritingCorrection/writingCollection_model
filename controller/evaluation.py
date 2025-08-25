@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends
-import easyocr
 from database import get_db
 from dto.resultDTO import ResultCreate, ResultResponse
 from service.missionRecordService import clear_mission_record, create_mission_record
@@ -13,10 +12,20 @@ from service.userService import get_user_by_id
 
 router=APIRouter()
 
-reader = easyocr.Reader(['ko'])  # 한글 지원
+reader = None  # will be initialized lazily
 
 @router.post("/evaluate", response_model=ResultResponse)
 async def evaluate_handwriting(payload: ResultCreate,  db: Session = Depends(get_db)):
+    global reader
+    if reader is None:
+        import easyocr
+        reader = easyocr.Reader(
+            ['ko'],
+            gpu=False,                     # GPU 대신 CPU만 사용
+            model_storage_directory='/home/ec2-user/.easyocr_cache',   # 모델 캐시 경로 변경
+            download_enabled=True,        # 불필요한 다운로드 방지
+            verbose=False                  # 로깅 최소화
+        )
     current_user=get_user_by_id(db=db, user_id=payload.user_id)
     if not current_user:
         return {"error": "User not found"}, 404

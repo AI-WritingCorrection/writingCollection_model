@@ -1,3 +1,26 @@
+def _xy(p):
+    """
+    다양한 포인트 표현을 (x, y) 튜플로 표준화한다.
+    지원:
+      - dict: {"x": float, "y": float}
+      - 시퀀스: (x, y) / [x, y]
+      - 속성: p.x, p.y  (예: Offset)
+    """
+    # dict 스타일
+    if isinstance(p, dict):
+        return float(p["x"]), float(p["y"])
+    # 시퀀스 (tuple/list)
+    if isinstance(p, (tuple, list)) and len(p) >= 2:
+        return float(p[0]), float(p[1])
+    # 속성 접근 (Offset 등)
+    if hasattr(p, "x") and hasattr(p, "y"):
+        return float(getattr(p, "x")), float(getattr(p, "y"))
+    raise TypeError(f"Unsupported point type for {_safe_repr(p)}")
+
+def _safe_repr(p, maxlen=120):
+    s = repr(p)
+    return s if len(s) <= maxlen else s[:maxlen] + "…"
+
 STROKE_DIRECTION_RULES = {
  'ㄱ': {1: {'DELTA_X': '+', 'DELTA_Y': '+'}},
  'ㄲ': {1: {'DELTA_X': '+', 'DELTA_Y': '+'}, 2: {'DELTA_X': '+', 'DELTA_Y': '+'}},
@@ -194,8 +217,9 @@ def check_stroke_directions(practice_syllable, stroke_points):
     for i, direction in enumerate(expected_directions):
         start = stroke_points[i * 2]
         end = stroke_points[i * 2 + 1]
-        dx = end["x"] - start["x"]
-        dy = end["y"] - start["y"]
+        sx, sy = _xy(start)
+        ex, ey = _xy(end)
+        dx, dy = ex - sx, ey - sy
 
         if direction["DELTA_X"] in ["+", "-"]:
             if (direction["DELTA_X"] == "+" and dx <= 0) or (direction["DELTA_X"] == "-" and dx >= 0):

@@ -61,19 +61,19 @@ def evaluate_character(images, stroke_counts, stroke_points, practice_syllabus):
         score += 15
 
 
-    # 4차 필터: 디테일 평가
-    # passed, reason = check_detail_features(images, phoneme_img_list, stroke_points, practice_syllabus)
-    # if not passed:
-    #     error_stage.append("4차 필터")
-    #     error_reason.append(reason)
-    #     # return {"stage": "4차 필터", "reason": reason, "score": score}
-    # else:
-    #     score += 15
+    #4차 필터: 디테일 평가
+    passed, reason = check_detail_features(images, phoneme_img_list, stroke_points, practice_syllabus)
+    if not passed:
+        error_stage.append("4차 필터")
+        error_reason.append(reason)
+        # return {"stage": "4차 필터", "reason": reason, "score": score}
+    else:
+        score += 15
 
-    # if score == 100:
-    #     error_stage.append("완료")
-    #     error_reason.append(None)
-    #     # return {"stage": "완료", "reason": None, "score": score}
+    if score == 100:
+        error_stage.append("완료")
+        error_reason.append(None)
+        # return {"stage": "완료", "reason": None, "score": score}
 
     return {"stage": error_stage, "reason": error_reason, "score": score}
 

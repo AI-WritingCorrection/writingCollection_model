@@ -94,7 +94,7 @@ async def evaluate_handwriting(payload: ResultCreate,  db: Session = Depends(get
             "stage": score_result["stage"]
         })
 
-        # 실패 단계 기록
+        #실패 단계 기록
         if score_result["stage"] != "완료":
             fail_stage_counter[score_result["stage"]] = fail_stage_counter.get(score_result["stage"], 0) + 1
 

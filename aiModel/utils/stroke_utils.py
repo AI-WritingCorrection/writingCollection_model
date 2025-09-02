@@ -22,7 +22,7 @@ def _safe_repr(p, maxlen=120):
     return s if len(s) <= maxlen else s[:maxlen] + "…"
 
 STROKE_DIRECTION_RULES = {
- 'ㄱ': {1: {'DELTA_X': '+', 'DELTA_Y': '+'}},
+ 'ㄱ': {1: {'DELTA_X': None, 'DELTA_Y': '+'}},
  'ㄲ': {1: {'DELTA_X': '+', 'DELTA_Y': '+'}, 2: {'DELTA_X': '+', 'DELTA_Y': '+'}},
  'ㄳ': {1: {'DELTA_X': '+', 'DELTA_Y': '+'},
        2: {'DELTA_X': '-', 'DELTA_Y': '+'},
@@ -202,7 +202,6 @@ def decompose_hangul(syllable):
     jung = (base % (21 * 28)) // 28
     jong = base % 28
     return (CHOSUNG_LIST[cho], JUNGSUNG_LIST[jung], JONGSUNG_LIST[jong])
-
 
 
 def check_stroke_directions(practice_syllable, stroke_points):

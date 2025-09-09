@@ -91,7 +91,8 @@ async def evaluate_handwriting(payload: ResultCreate,  db: Session = Depends(get
 
         results.append({
             "score": score_result["score"],
-            "stage": score_result["stage"]
+            "stage": score_result["stage"],
+            "feedback" : score_result["feedback"],
         })
 
         # 실패 단계 기록
@@ -120,13 +121,7 @@ async def evaluate_handwriting(payload: ResultCreate,  db: Session = Depends(get
 
     # 5) Response 반환
     return ResultResponse(score=avg_score,
-        summary=f"평균 점수: {avg_score}, 가장 많이 실패한 단계: {most_failed}",
-        recognized_texts=recognized_texts)
+        summary=f"가장 많이 실패한 단계: {most_failed}",
+        feedback=result["feedback"])
           # OCR로 인식된 글자들 추가
     
-
-
-
-
-
-

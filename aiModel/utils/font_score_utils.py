@@ -24,7 +24,7 @@ def evaluate_character(images, stroke_counts, stroke_points, practice_syllabus):
     #초기 값 설정
 
     error_stage = []    #   문제가 생긴 단계 저장
-    error_reason = []   #   단계에서 감지한 문제 저장
+    error_reason = ""   #   단계에서 감지한 문제 저장
     
     # 1차 필터 (OCR)는 서버 측에서 이미 통과한 것으로 간주하고 50점 부여
     score = 50 
@@ -45,7 +45,7 @@ def evaluate_character(images, stroke_counts, stroke_points, practice_syllabus):
     passed, reason = check_bbox_shape(images)
     if not passed:
         error_stage.append("2차 필터")
-        error_reason.append(reason)
+        error_reason = error_reason + reason
         # return {"stage": "2차 필터", "reason": reason, "score": score}
     else:
         score += 20
@@ -55,17 +55,17 @@ def evaluate_character(images, stroke_counts, stroke_points, practice_syllabus):
     passed, reason = check_stroke_order(stroke_points, practice_syllabus)
     if not passed:
         error_stage.append("3차 필터")
-        error_reason.append(reason)
+        error_reason = error_reason + reason
         # return {"stage": "3차 필터", "reason": reason, "score": score}
     else:
         score += 15
 
 
-    #4차 필터: 디테일 평가
+    # 4차 필터: 디테일 평가
     passed, reason = check_detail_features(images, phoneme_img_list, stroke_points, practice_syllabus)
     if not passed:
         error_stage.append("4차 필터")
-        error_reason.append(reason)
+        error_reason = error_reason + reason
         # return {"stage": "4차 필터", "reason": reason, "score": score}
     else:
         score += 15

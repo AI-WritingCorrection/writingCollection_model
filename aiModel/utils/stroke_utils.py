@@ -232,3 +232,94 @@ def check_stroke_directions(practice_syllable, stroke_points):
 
 
 
+##1차 가독성 스테이지 음절 체크 함수
+
+# 1단계 : 문자만 추출하는 함수 정의
+def extract_letters(input_string):
+  """
+  입력된 문자열에서 특수기호, 숫자, 공백을 모두 제거하고
+  오직 한글과 영어 알파벳만 남겨서 반환하는 함수
+  """
+  return "".join([char for char in input_string if char.isalpha()])
+
+
+
+# 2단계 : 문자 자모 분리
+def separate_jamo(korean_string):
+  """
+  한글 문자열을 입력받아 초성, 중성, 종성 리스트로 분리하여 반환하는 함수
+  """
+
+  # 결과를 담을 리스트 초기화
+  chosung_result = []
+  jungsung_result = []
+  jongsung_result = []
+
+  for char in korean_string:
+    # 한글은 유니코드 값으로 '가'(44032)부터 시작해.
+    # 입력된 글자의 유니코드 값에서 '가'의 값을 빼서 기준을 맞춘다.
+    char_code = ord(char) - ord('가')
+
+    # 종성 계산 (총 28개)
+    jongseung_index = char_code % 28
+    # 중성 계산 (총 21개)
+    jungseung_index = (char_code // 28) % 21
+    # 초성 계산
+    chosung_index = char_code // (28 * 21)
+
+    # 계산된 인덱스로 각 리스트에서 글자를 가져온다.
+    chosung_result.append(CHOSUNG_LIST[chosung_index])
+    jungsung_result.append(JUNGSUNG_LIST[jungseung_index])
+
+    # 종성은 없는 경우도 있으므로, 빈 문자('')가 아닐 때만 리스트에 추가한다.
+    final_consonant = JONGSUNG_LIST[jongseung_index]
+    if final_consonant: # final_consonant가 빈 문자가 아니라면
+      jongsung_result.append(final_consonant)
+
+  return chosung_result, jungsung_result, jongsung_result
+
+
+# 3단계: 가독성 체크 카운트
+def count_jamo_matches(sentence, char):
+  """
+  문장과 글자 하나의 자모를 비교하여 일치하는 자모 종류의 개수를 반환하는 함수
+  """
+  # 0. 문장에 있을지 모를 특수기호나 공백을 제거한다.
+  clean_sentence = extract_letters(sentence)
+
+  # 1. 문장과 글자를 각각 자모 분리한다.
+  sent_cho, sent_jung, sent_jong = separate_jamo(clean_sentence)
+  char_cho, char_jung, char_jong = separate_jamo(char)
+
+  # 2. 점수를 기록할 변수를 만든다.
+  score = 0
+
+  # 3. 자모를 하나씩 비교한다.
+  # 초성 비교: 글자의 초성이 문장 초성 리스트에 있는지 확인
+  if char_cho and char_cho[0] in sent_cho:
+    score += 1
+
+  # 중성 비교: 글자의 중성이 문장 중성 리스트에 있는지 확인
+  if char_jung and char_jung[0] in sent_jung:
+    score += 1
+
+  # 종성 비교: 글자에 종성이 '있고', 그 종성이 문장 종성 리스트에 있는지 확인
+  if char_jong and char_jong[0] in sent_jong:
+    score += 1
+
+  # 4. 최종 점수를 반환한다.
+  return score
+
+
+##종성 유무 체크기
+def has_jongseung(korean_string):
+  """
+  입력된 한글 문자열에 종성이 하나라도 있는지 여부를 판단하는 함수
+  종성이 있으면 True, 하나도 없으면 False를 반환한다.
+  """
+  # separate_jamo 함수를 호출해서 초성, 중성, 종성 리스트를 받아온다.
+  # 여기서는 종성 리스트만 필요하므로 초성, 중성은 _ 변수로 무시한다.
+  _, _, jongseung_list = separate_jamo(korean_string)
+
+  # 종성 리스트에 내용이 있으면 True, 비어있으면 False가 된다.
+  return bool(jongseung_list)

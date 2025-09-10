@@ -99,7 +99,7 @@ async def evaluate_handwriting(payload: ResultCreate,  db: Session = Depends(get
         results.append({
             "score": score_result["score"],
             "stage": score_result["stage"],
-            "feedback" : score_result["feedback"],
+            "feedback" : score_result["reason"],
         })
 
         # 실패 단계 기록

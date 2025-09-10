@@ -59,11 +59,16 @@ def get_char_acc(images, phoneme_img_list, stroke_points, practice_syllabus):
         
 
         char_size = (char_coord[1][0] - char_coord[0][0]) * (char_coord[2][1] - char_coord[0][1])
+
+        errormsg = ""
+
+        if char_size == 0:
+            errormsg += errormsg+ ("글씨가 너무 작아 알아볼 수 없어요...\n")
+            return False, errormsg
+        
         Cell_1_size = (Cell_1_coord[1][0] - Cell_1_coord[0][0]) * (Cell_1_coord[2][1] - Cell_1_coord[0][1])
         Cell_2_size = (Cell_2_coord[1][0] - Cell_2_coord[0][0]) * (Cell_2_coord[2][1] - Cell_2_coord[0][1])
         Cell_3_size = (Cell_3_coord[1][0] - Cell_3_coord[0][0]) * (Cell_3_coord[2][1] - Cell_3_coord[0][1])
-
-        errormsg = ""
 
         if char_type == 1:
             #   사이즈에 대한 오류를 에러 코드로 표시한 후, return하고 한 번에 출력하는 것은 어떤가?

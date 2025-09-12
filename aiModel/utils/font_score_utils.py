@@ -4,11 +4,12 @@ from .char_accr import check_char_size
 from .stroke_utils import check_stroke_directions
 from .cell_accr import get_char_acc
 
-def evaluate_character(images, stroke_counts, stroke_points, practice_syllabus):
+def evaluate_character(passed_ocr, images, stroke_counts, stroke_points, practice_syllabus):
     """
     글자 하나에 대한 평가 함수: 2차 (크기), 3차 (획 순서), 4차 (디테일)를 순차적으로 통과시킴 | 1차는 ocr 통과로 간주
 
     Parameters:
+        passed_ocr (bool): OCR 통과 여부
         images (list[PIL.Image.Image]): 디코딩된 획 이미지 리스트
         stroke_counts (list[int]): 획 수 정보
         stroke_points (list[dict]): 획의 시작점/끝점 좌표 정보
@@ -17,17 +18,22 @@ def evaluate_character(images, stroke_counts, stroke_points, practice_syllabus):
     Returns:
         dict: 평가 결과
             - stage (str): 실패한 단계 또는 "완료"
-            - reason (str): 실패 이유 (선택적)
+            - reason (str): 실패 피드백
             - score (int): 누적 점수
     """
 
     #초기 값 설정
 
-    error_stage = []    #   문제가 생긴 단계 저장
-    error_reason = ""   #   단계에서 감지한 문제 저장
+    #0 =통과 , 1=실패, ex0010 == 3번 스테이지에서만 실패
+    error_stage = "0" if passed_ocr else "1" #  문제가 생긴 단계 저장 (0: OCR 통과, 1: OCR 불통과)
     
-    # 1차 필터 (OCR)는 서버 측에서 이미 통과한 것으로 간주하고 50점 부여
-    score = 50 
+    
+    # 4칸짜리 리스트로 초기화, 각 칸은 각 단계를 의미
+    error_reason = [None, None, None, None]
+    if not passed_ocr:
+        error_reason[0] = "글자를 인식하지 못했어요." # 1단계(OCR) 실패 피드백
+    
+    score = 50 if passed_ocr else 0 # 1차(OCR)통과 시 50점, 불통과 시 0점
 
     # 획 -> 글자 이미지 병합
     img_tot = merge_images(images)
@@ -44,36 +50,40 @@ def evaluate_character(images, stroke_counts, stroke_points, practice_syllabus):
     # 2차 필터: 전체 형태 (크기 및 비율)
     passed, reason = check_bbox_shape(images)
     if not passed:
-        error_stage.append("2차 필터")
-        error_reason = error_reason + reason
+        error_stage += "1"
+        error_reason[1] = reason
         # return {"stage": "2차 필터", "reason": reason, "score": score}
     else:
+        error_stage += "0"
         score += 20
 
     
     # 3차 필터: 획 순서
     passed, reason = check_stroke_order(stroke_points, practice_syllabus)
     if not passed:
-        error_stage.append("3차 필터")
-        error_reason = error_reason + reason
+        error_stage += "1"
+        error_reason[2] = reason
         # return {"stage": "3차 필터", "reason": reason, "score": score}
     else:
+        error_stage += "0"
         score += 15
 
 
     # 4차 필터: 디테일 평가
     passed, reason = check_detail_features(images, phoneme_img_list, stroke_points, practice_syllabus)
     if not passed:
-        error_stage.append("4차 필터")
-        error_reason = error_reason + reason
+        error_stage += "1"
+        error_reason[3] = reason
         # return {"stage": "4차 필터", "reason": reason, "score": score}
     else:
+        error_stage += "0"
         score += 15
 
-    if score == 100:
-        error_stage.append("완료")
-        error_reason.append(None)
-        # return {"stage": "완료", "reason": None, "score": score}
+    # 필요없음 확인후 제거
+    # if score == 100:
+    #     error_stage.append("완료")
+    #     error_reason.append(None)
+    #     # return {"stage": "완료", "reason": None, "score": score}
 
     return {"stage": error_stage, "reason": error_reason, "score": score}
 

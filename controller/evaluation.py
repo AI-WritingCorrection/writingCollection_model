@@ -37,8 +37,8 @@ async def evaluate_handwriting(payload: ResultCreate,  db: Session = Depends(get
     
     #2)모델 채점
     results = []  # 각 셀의 결과 저장용
-    fail_stage_counter = {}  # 실패 단계별 빈도 카운트
-    recognized_texts = {}  # 각 cell_id 별 OCR 결과 저장용
+    recognized_texts = ""  # 인식된 텍스트 저장용
+    summary = ["", "", "", ""] # 각 단계별 틀린 글자 요약 저장용
 
 
     # 각 글자자에 대해 반복
@@ -69,7 +69,7 @@ async def evaluate_handwriting(payload: ResultCreate,  db: Session = Depends(get
         # 4_a. 정확히 맞으면 통과
         recognized_text = ocr_results[0] if ocr_results else None  # 기본값 설정
         if recognized_text == practice_syllabus : # 정확히 맞는 경우
-            recognized_texts[cell_id] = "완벽 => " + recognized_text  # 저장
+            recognized_texts = "완벽 => " + recognized_text  # 저장
             passed_ocr = True
             
 
@@ -81,37 +81,42 @@ async def evaluate_handwriting(payload: ResultCreate,  db: Session = Depends(get
 
             eval_count = 2 if has_jongseung(practice_syllabus) else 2 # 종성이 있으면 초중종[3], 없으면 초중[2]  인데 일단 2로 통일
             if eval_count <= count_jamo_matches(recognized_text, practice_syllabus) :
-                recognized_texts[cell_id] = "괜찮음(후보군) => " + extract_letters(recognized_text)
+                recognized_texts = "괜찮음(후보군) => " + extract_letters(recognized_text)
                 passed_ocr = True
 
-        # 이게 틀린거 요약 + 교정 내용 조금 추가 할 필요 있음 지금은 일단 꺼둠 return 작업자가 수정해줘야함.
-        # # OCR 실패 처리
-        # if not passed_ocr:
-        #     results.append({"score": 0, "stage": "OCR 실패"})
-        #     print(f"Cell {cell_id} OCR 실패: {recognized_text} (기대값: {practice_syllabus})")
-        #     fail_stage_counter["OCR 실패"] = fail_stage_counter.get("OCR 실패", 0) + 1
-        #     continue
-
+        if not passed_ocr: recognized_texts = "인식실패" #1차 스테이지 실패 처리
 
         # 5. 평가 함수 호출
-        score_result = evaluate_character(images, stroke_counts, stroke_points, practice_syllabus)
+        score_result = evaluate_character(passed_ocr, images, stroke_counts, stroke_points, practice_syllabus)
 
         results.append({
+            "original_text": practice_syllabus,
+            "recognized_text": recognized_texts,
             "score": score_result["score"],
             "stage": score_result["stage"],
             "feedback" : score_result["reason"],
         })
 
+        # 6. summary 업데이트 로직 
+        stage_string = score_result["stage"]      # ex: "0110"
+        current_char = practice_syllabus          # ex: "안"
+
+        for i, result_code in enumerate(stage_string):
+            if result_code == '1': # i번째 단계에서 실패했다면
+                summary[i] += current_char # summary의 i번째 칸에 현재 글자를 추가
+
+        
+
         # 실패 단계 기록
-        if score_result["stage"] != "완료":
-            fail_stage_counter[score_result["stage"]] = fail_stage_counter.get(score_result["stage"], 0) + 1
+        # if score_result["stage"] != "완료":
+        #     fail_stage_counter[score_result["stage"]] = fail_stage_counter.get(score_result["stage"], 0)
 
 
     # 평균 계산
     avg_score = sum(r["score"] for r in results) / len(results) if results else 0
 
-    # 가장 많이 실패한 단계 찾기
-    most_failed = max(fail_stage_counter.items(), key=lambda x: x[1])[0] if fail_stage_counter else None
+    # 최종 피드백들
+    final_feedbacks = [r["feedback"] for r in results]
 
     # 3) Result 저장
     create_result(
@@ -126,8 +131,12 @@ async def evaluate_handwriting(payload: ResultCreate,  db: Session = Depends(get
         clear_mission_record(db, mission_record.mission_id)  # 내부에서 isCleared=True, clear_time=now() 처리
 
 
-    # 5) Response 반환
-    return ResultResponse(score=avg_score,
-        summary=f"가장 많이 실패한 단계: {most_failed}",
-        feedback=results["feedback"])
-          # OCR로 인식된 글자들 추가
+    #5) Response 반환
+    return ResultResponse(
+        avg_score=avg_score,
+        summary=summary,
+        feedback=final_feedbacks,
+        results=results
+    )
+
+    

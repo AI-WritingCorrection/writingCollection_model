@@ -126,7 +126,7 @@ STROKE_DIRECTION_RULES = {
  'ㅏ': {1: {'DELTA_X': None, 'DELTA_Y': '+'}, 2: {'DELTA_X': '+', 'DELTA_Y': None}},
  'ㅐ': {1: {'DELTA_X': None, 'DELTA_Y': '+'},
        2: {'DELTA_X': '+', 'DELTA_Y': None},
-       3: {'DELTA_X': '+', 'DELTA_Y': None}},
+       3: {'DELTA_X': None, 'DELTA_Y': '+'}},
  'ㅑ': {1: {'DELTA_X': None, 'DELTA_Y': '+'},
        2: {'DELTA_X': '+', 'DELTA_Y': None},
        3: {'DELTA_X': '+', 'DELTA_Y': None}},
@@ -222,11 +222,11 @@ def check_stroke_directions(practice_syllable, stroke_points):
 
         if direction["DELTA_X"] in ["+", "-"]:
             if (direction["DELTA_X"] == "+" and dx <= 0) or (direction["DELTA_X"] == "-" and dx >= 0):
-                return False, f"{i+1}번째 획의 X방향이 {direction['DELTA_X']}이어야 하는데 그렇지 않음"
+                return False, f"{i+1}번째 획의 X방향이 {direction['DELTA_X']}이어야 하는데 그렇지 않아요..."
 
         if direction["DELTA_Y"] in ["+", "-"]:
             if (direction["DELTA_Y"] == "+" and dy <= 0) or (direction["DELTA_Y"] == "-" and dy >= 0):
-                return False, f"{i+1}번째 획의 Y방향이 {direction['DELTA_Y']}이어야 하는데 그렇지 않음"
+                return False, f"{i+1}번째 획의 Y방향이 {direction['DELTA_Y']}이어야 하는데 그렇지 않아요..."
 
     return True, None
 

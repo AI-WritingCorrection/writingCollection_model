@@ -256,25 +256,31 @@ def separate_jamo(korean_string):
   jongsung_result = []
 
   for char in korean_string:
-    # 한글은 유니코드 값으로 '가'(44032)부터 시작해.
-    # 입력된 글자의 유니코드 값에서 '가'의 값을 빼서 기준을 맞춘다.
-    char_code = ord(char) - ord('가')
+      # 입력된 문자가 '가'부터 '힣' 사이의 한글 음절인지 확인
+      if '가' <= char <= '힣':
+            # 한글은 유니코드 값으로 '가'(44032)부터 시작
+            # 입력된 글자의 유니코드 값에서 '가'의 값을 빼서 기준을 맞춘다.
+            char_code = ord(char) - ord('가')
 
-    # 종성 계산 (총 28개)
-    jongseung_index = char_code % 28
-    # 중성 계산 (총 21개)
-    jungseung_index = (char_code // 28) % 21
-    # 초성 계산
-    chosung_index = char_code // (28 * 21)
+            # 종성 계산 (총 28개)
+            jongseung_index = char_code % 28
+            # 중성 계산 (총 21개)
+            jungseung_index = (char_code // 28) % 21
+            # 초성 계산
+            chosung_index = char_code // (28 * 21)
 
-    # 계산된 인덱스로 각 리스트에서 글자를 가져온다.
-    chosung_result.append(CHOSUNG_LIST[chosung_index])
-    jungsung_result.append(JUNGSUNG_LIST[jungseung_index])
+            # 계산된 인덱스로 각 리스트에서 글자를 가져온다.
+            chosung_result.append(CHOSUNG_LIST[chosung_index])
+            jungsung_result.append(JUNGSUNG_LIST[jungseung_index])
 
-    # 종성은 없는 경우도 있으므로, 빈 문자('')가 아닐 때만 리스트에 추가한다.
-    final_consonant = JONGSUNG_LIST[jongseung_index]
-    if final_consonant: # final_consonant가 빈 문자가 아니라면
-      jongsung_result.append(final_consonant)
+            # 종성은 없는 경우도 있으므로, 빈 문자('')가 아닐 때만 리스트에 추가한다.
+            final_consonant = JONGSUNG_LIST[jongseung_index]
+            if final_consonant: # final_consonant가 빈 문자가 아니라면
+                  jongsung_result.append(final_consonant)
+      else:
+            # 완성형 글자가 아니면 건너뛴다.
+            continue
+      
 
   return chosung_result, jungsung_result, jongsung_result
 

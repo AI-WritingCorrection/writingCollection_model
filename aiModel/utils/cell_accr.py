@@ -25,7 +25,7 @@ def get_char_acc(images, phoneme_img_list, stroke_points, practice_syllabus):
     
     char_decom = char_decompose(practice_syllabus)
 
-    if char_decom[0][2] == '':
+    if char_decom[0][2] == ' ':
         if CHAR_TYPE_RULES[char_decom[0][1]] == 0:
             char_type = 0
         elif CHAR_TYPE_RULES[char_decom[0][1]] == 2:

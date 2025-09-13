@@ -77,14 +77,14 @@ async def evaluate_handwriting(payload: ResultCreate,  db: Session = Depends(get
         else : 
             # 3. OCR_TOP K
             ocr_results = reader.readtext(img_bytes, detail = 0, decoder = 'greedy_best2')  # detail=0 으로 설정하여 (text, confidence) 튜플 대신 텍스트만 반환
-            recognized_text = ocr_results[0] if ocr_results else None  # 기본값 설정
+            recognized_text = ocr_results[0] if ocr_results else ""  # 기본값 설정
 
             eval_count = 2 if has_jongseung(practice_syllabus) else 2 # 종성이 있으면 초중종[3], 없으면 초중[2]  인데 일단 2로 통일
             if eval_count <= count_jamo_matches(recognized_text, practice_syllabus) :
                 recognized_texts = "괜찮음(후보군) => " + extract_letters(recognized_text)
                 passed_ocr = True
 
-        if not passed_ocr: recognized_texts = "인식실패" #1차 스테이지 실패 처리
+        if not passed_ocr: recognized_texts = "인식실패 => " + recognized_text #1차 스테이지 실패 처리
 
         # 5. 평가 함수 호출
         score_result = evaluate_character(passed_ocr, images, stroke_counts, stroke_points, practice_syllabus)

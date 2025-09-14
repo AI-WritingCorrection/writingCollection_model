@@ -205,6 +205,19 @@ def decompose_hangul(syllable):
 
 
 def check_stroke_directions(practice_syllable, stroke_points):
+    """
+      획의 방향과 순서가 올바른지 판단 (3차 필터)
+
+      Parameters:
+            practice_syllable (str): 기준 글자 (예: '가', '밈')
+                  -stroke_points (list[dict]): 획별 시작/끝 좌표
+      Returns:
+            tuple(bool, str or None): is_passed, reason, stage3_debug_state
+                  - bool: 필터 통과 여부
+                  - str: 실패 이유 (통과 시 None)
+                  - str: 디버그용 내부 상태 (현재 None)
+    
+    """
     phonemes = decompose_hangul(practice_syllable)
 
     expected_directions = []
@@ -222,13 +235,13 @@ def check_stroke_directions(practice_syllable, stroke_points):
 
         if direction["DELTA_X"] in ["+", "-"]:
             if (direction["DELTA_X"] == "+" and dx <= 0) or (direction["DELTA_X"] == "-" and dx >= 0):
-                return False, f"{i+1}번째 획의 X방향이 {direction['DELTA_X']}이어야 하는데 그렇지 않아요..."
+                return False, f"{i+1}번째 획의 X방향이 {direction['DELTA_X']}이어야 하는데 그렇지 않아요...", None
 
         if direction["DELTA_Y"] in ["+", "-"]:
             if (direction["DELTA_Y"] == "+" and dy <= 0) or (direction["DELTA_Y"] == "-" and dy >= 0):
-                return False, f"{i+1}번째 획의 Y방향이 {direction['DELTA_Y']}이어야 하는데 그렇지 않아요..."
+                return False, f"{i+1}번째 획의 Y방향이 {direction['DELTA_Y']}이어야 하는데 그렇지 않아요...", None
 
-    return True, None
+    return True, None, None
 
 
 

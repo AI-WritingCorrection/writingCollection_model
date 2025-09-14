@@ -13,6 +13,9 @@ def check_char_size(img_tot, version = "new"):
     else:
         return check_char_size_new(img_tot)
 
+
+#old version : 방식 - 경계선 스캔을 통해 글자 크기 비율 판단 [경계선 스캔 방식]
+def check_char_size_old(images):
     errormsg = ""
     
     img = np.array(images[0])
@@ -40,6 +43,9 @@ def check_char_size(img_tot, version = "new"):
         return True, None
     else:
         return False, errormsg
+
+#new version : 방식 - numpy로 글자 영역 탐색 후 크기 비율 판단 [그림자 찾기 방식]
+#2차 스테이지 보완
 def check_char_size_new(img_tot):
     """
     PNG 바이트 이미지를 받아 내부 글씨의 크기 비율을 검사한다.

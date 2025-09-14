@@ -48,7 +48,7 @@ def evaluate_character(passed_ocr, images, stroke_counts, stroke_points, practic
 
 
     # 2차 필터: 전체 형태 (크기 및 비율)
-    passed, reason = check_bbox_shape(images)
+    passed, reason, stage2_debug_state = check_shape(img_tot)
     if not passed:
         error_stage += "1"
         error_reason[1] = reason
@@ -59,7 +59,7 @@ def evaluate_character(passed_ocr, images, stroke_counts, stroke_points, practic
 
     
     # 3차 필터: 획 순서
-    passed, reason = check_stroke_order(stroke_points, practice_syllabus)
+    passed, reason, stage3_debug_state = check_stroke_order(stroke_points, practice_syllabus)
     if not passed:
         error_stage += "1"
         error_reason[2] = reason
@@ -70,7 +70,7 @@ def evaluate_character(passed_ocr, images, stroke_counts, stroke_points, practic
 
 
     # 4차 필터: 디테일 평가
-    passed, reason = check_detail_features(images, phoneme_img_list, stroke_points, practice_syllabus)
+    passed, reason, stage4_debug_state = check_detail_features(img_tot, images, stroke_counts, practice_syllabus)
     if not passed:
         error_stage += "1"
         error_reason[3] = reason
@@ -85,11 +85,12 @@ def evaluate_character(passed_ocr, images, stroke_counts, stroke_points, practic
     #     error_reason.append(None)
     #     # return {"stage": "완료", "reason": None, "score": score}
 
-    return {"stage": error_stage, "reason": error_reason, "score": score}
+    return {"stage": error_stage, "reason": error_reason, "score": score,
+             "stage2_debug_state": stage2_debug_state, "stage3_debug_state": stage3_debug_state, "stage4_debug_state": stage4_debug_state}
 
 
 # 2차 필터: 전체 형태 (크기 및 비율)
-def check_bbox_shape(images):
+def check_shape(img_tot, version = "new"):
     """
     병합된 글자 이미지의 크기/비율을 판단하는 함수 (2차 필터)
 
@@ -100,9 +101,12 @@ def check_bbox_shape(images):
         tuple(bool, str or None):
             - bool: 필터 통과 여부
             - str: 실패 이유 (통과 시 None)
+            - str: 디버그용 내부 상태
     """
-    is_passed, reason = check_char_size(images)
-    return is_passed, reason
+
+    is_passed, reason, debug_msg = check_char_size(img_tot , version)
+
+    return is_passed, reason, debug_msg
 
 
 
@@ -121,13 +125,13 @@ def check_stroke_order(stroke_points, practice_syllabus):
             - str: 실패 이유 (통과 시 None)
     """
 
-    is_passed, reason = check_stroke_directions(practice_syllabus, stroke_points)
+    is_passed, reason, stage3_debug_state = check_stroke_directions(practice_syllabus, stroke_points)
 
-    return is_passed, reason
+    return is_passed, reason, stage3_debug_state
 
 
 # 4차 필터: 디테일 평가
-def check_detail_features(images, phoneme_img_list, stroke_points, practice_syllabus):
+def check_detail_features(img_tot, images, stroke_counts, practice_syllabus):
     """
     글자의 디테일 요소 (크기 밸런스, 자모 거리, 기울기 등) 평가 (4차 필터)
 
@@ -143,9 +147,9 @@ def check_detail_features(images, phoneme_img_list, stroke_points, practice_syll
             - str: 실패 이유 (통과 시 None)
     """
 
-    is_passed, reason = get_char_acc(images, phoneme_img_list, stroke_points, practice_syllabus)
+    is_passed, reason, stage4_debug_state = get_char_acc(img_tot, images, stroke_counts, practice_syllabus)
 
 
-    return is_passed, reason
+    return is_passed, reason, stage4_debug_state
 
 

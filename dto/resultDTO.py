@@ -27,10 +27,13 @@ class ResultResponse(BaseModel):
 # Result 응답용 DTO - 글자별 상세 결과
 class CharacterResult(BaseModel):
     original_text: str
-    recognized_text: str
     score: int
     stage: str
     feedback: List[Optional[str]]
+    recognized_text: str
+    stage2_debug_state: Optional[str] = None  # 2차 스테이지 디버그 정보 (없을 수도 있음)
+    stage3_debug_state: Optional[str] = None  # 3차 스테이지 디버그 정보 (없을 수도 있음)
+    stage4_debug_state: Optional[str] = None  # 4차 스테이지 디버그 정보 (없을 수도 있음)
 
 
 #  Result 응답용 DTO (최종 응답으로 사용할 메인 모델)

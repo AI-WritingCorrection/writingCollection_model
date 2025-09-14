@@ -91,10 +91,13 @@ async def evaluate_handwriting(payload: ResultCreate,  db: Session = Depends(get
 
         results.append({
             "original_text": practice_syllabus,
-            "recognized_text": recognized_texts,
             "score": score_result["score"],
             "stage": score_result["stage"],
             "feedback" : score_result["reason"],
+            "recognized_text": recognized_texts,
+            "stage2_debug_state": score_result.get("stage2_debug_state", None),  # 2차 스테이지 디버그 정보가 있으면 포함
+            "stage3_debug_state": score_result.get("stage3_debug_state", None),  # 3차 스테이지 디버그 정보가 있으면 포함
+            "stage4_debug_state": score_result.get("stage4_debug_state", None)   # 4차 스테이지 디버그 정보가 있으면 포함
         })
 
         # 6. summary 업데이트 로직 

@@ -15,6 +15,8 @@ router=APIRouter()
 # Image upload config
 ALLOWED_IMAGE_TYPES = {
     "image/jpeg": "jpg",
+    "image/jpg": "jpg",     # 일부 클라이언트가 image/jpg 로 보냄
+    "image/pjpeg": "jpg",   # 오래된 브라우저/카메라에서 쓰는 progressive jpeg
     "image/png": "png",
     "image/webp": "webp",
 }
@@ -59,20 +61,33 @@ async def upload_profile_image(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # MIME 타입 확인
-    if file.content_type not in ALLOWED_IMAGE_TYPES:
-        raise HTTPException(status_code=415, detail="Unsupported media type")
-
+    # 디버그: 들어온 content_type 과 파일명 확인
+    print(f"[UPLOAD] user_id={user_id}, content_type={file.content_type}, filename={file.filename}")
+  
+    # 확장자 결정: 우선 MIME으로, 아니면 파일명 확장자로 폴백
+    mime = (file.content_type or "").lower()
+    if mime in ALLOWED_IMAGE_TYPES:
+        ext = ALLOWED_IMAGE_TYPES[mime]
+    else:
+        name = (file.filename or "").lower()
+        if name.endswith((".jpg", ".jpeg")):
+            ext = "jpg"
+        elif name.endswith(".png"):
+            ext = "png"
+        elif name.endswith(".webp"):
+            ext = "webp"
+        else:
+            raise HTTPException(status_code=415, detail="Unsupported media type")
+  
     # 파일 크기 확인
     content = await file.read()
     if len(content) > MAX_UPLOAD_SIZE:
         raise HTTPException(status_code=413, detail="File too large")
-
+  
     # 디렉토리 준비
     os.makedirs(UPLOAD_DIR, exist_ok=True)
-
+  
     # 파일 저장
-    ext = ALLOWED_IMAGE_TYPES[file.content_type]
     fname = f"{user_id}_{uuid4().hex}.{ext}"
     fpath = os.path.join(UPLOAD_DIR, fname)
     with open(fpath, "wb") as f:

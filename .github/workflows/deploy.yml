@@ -80,6 +80,9 @@ jobs:
             
             # 4. Firebase 인증 키 파일 생성
             echo "${{ secrets.FIREBASE_CREDENTIALS_BASE64 }}" | base64 --decode > ./serviceAccountKey.json
+
+            sudo chcon -t container_file_t ./serviceAccountKey.json
+            sudo chcon -t container_file_t ./nginx.conf
             
             # 5. Docker Hub 로그인
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}

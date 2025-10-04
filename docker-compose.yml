@@ -1,0 +1,54 @@
+# Docker Compose 파일 버전
+version: '3.8'
+
+# 실행할 서비스(컨테이너) 목록
+services:
+  # FastAPI 서버 컨테이너
+  fastapi:
+    # 사용할 Docker 이미지 (GitHub Actions가 .env 파일에 채워준 값을 사용)
+    image: ${DOCKER_IMAGE_NAME}:${IMAGE_TAG:-latest}
+    # 컨테이너가 항상 재시작되도록 설정
+    restart: always
+    # Nginx를 통해 외부와 통신하므로 FastAPI 포트는 외부에 노출하지 않음
+    # ports:
+    #   - "8000:8000"
+    # 의존성 설정: 'db' 컨테이너가 시작된 후에 실행
+    depends_on:
+      - db
+    # 데이터베이스 연결 정보 등 환경 변수 설정
+    environment:
+      # 호스트 주소를 'host.docker.internal' 대신 서비스 이름 'db'로 변경
+      # 사용자, 비밀번호, DB 이름은 .env 파일에서 값을 가져옴
+      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+
+  # Nginx 컨테이너
+  nginx:
+    image: nginx:latest
+    restart: always
+    ports:
+      - "80:80" # 외부 80번 포트를 Nginx 80번 포트로 연결
+    volumes:
+      # 로컬의 nginx.conf 파일을 컨테이너의 설정 파일 위치에 마운트
+      # 이 파일이 로컬에 존재해야 함
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - fastapi
+
+  # PostgreSQL 데이터베이스 컨테이너
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      # .env 파일에 정의된 데이터베이스 접속 정보를 사용
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    # ports: # 디버깅 목적으로 DB에 직접 접속해야 할 때만 주석 해제
+    #   - "5432:5432"
+    volumes:
+      # 데이터베이스 데이터를 EC2 호스트에 영속적으로 저장하기 위한 볼륨
+      - postgres_data:/var/lib/postgresql/data
+
+# 데이터 영속성을 위한 볼륨 정의
+volumes:
+  postgres_data:

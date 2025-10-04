@@ -20,6 +20,7 @@ ALGORITHM = os.getenv("JWT_ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_EXPIRE_MINUTES", 60))
 
 
+
 router = APIRouter()
 
 # 이미지 업로드 설정 (회원가입 멀티파트용)
@@ -31,7 +32,7 @@ ALLOWED_IMAGE_TYPES = {
     "image/webp": "webp",
 }
 MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5MB
-UPLOAD_DIR = os.getenv("STATIC_PROFILE_DIR", "/writingCollection_model/static/profile")
+UPLOAD_DIR = os.getenv("STATIC_PROFILE_DIR", "/app/static/profile")
 PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL")  # 예: https://your-domain.com
 
 class TokenPayload(BaseModel):

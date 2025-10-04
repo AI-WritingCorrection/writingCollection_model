@@ -20,7 +20,11 @@ services:
       # 호스트 주소를 'host.docker.internal' 대신 서비스 이름 'db'로 변경
       # 사용자, 비밀번호, DB 이름은 .env 파일에서 값을 가져옴
       - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-
+    volumes:
+      # 호스트(EC2)의 ./serviceAccountKey.json 파일을
+      # 컨테이너의 /app/serviceAccountKey.json 파일로 연결합니다.
+      - ./serviceAccountKey.json:/app/serviceAccountKey.json
+      
   # Nginx 컨테이너
   nginx:
     image: nginx:latest

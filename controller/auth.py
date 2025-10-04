@@ -17,7 +17,7 @@ from uuid import uuid4
 
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")  
 ALGORITHM = os.getenv("JWT_ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_EXPIRE_MINUTES"))
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_EXPIRE_MINUTES", 60))
 
 
 router = APIRouter()

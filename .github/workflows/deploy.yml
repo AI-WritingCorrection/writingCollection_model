@@ -77,6 +77,8 @@ jobs:
             
             echo "--- .env file created successfully ---"
             # --------------------------------------------------------------------
+            sync
+            sleep 2
             
             # 4. Firebase 인증 키 파일 생성
             echo "${{ secrets.FIREBASE_CREDENTIALS_BASE64 }}" | base64 --decode > ./serviceAccountKey.json

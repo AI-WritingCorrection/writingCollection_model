@@ -45,7 +45,7 @@ services:
       - ./static:/app/static
     depends_on:
       - fastapi
-      
+
 
   # PostgreSQL 데이터베이스 컨테이너
   db:
@@ -57,7 +57,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     # ports: # 디버깅 목적으로 DB에 직접 접속해야 할 때만 주석 해제
-    #   - "5432:5432"
+      - "5432:5432"
     volumes:
       # 데이터베이스 데이터를 EC2 호스트에 영속적으로 저장하기 위한 볼륨
       - postgres_data:/var/lib/postgresql/data

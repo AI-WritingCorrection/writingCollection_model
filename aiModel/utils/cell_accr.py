@@ -6,7 +6,6 @@ from .bboxtest import dist_smallchar
 from .bboxtest import get_bbox_smallchar
 
 from .decompose import char_decompose
-from .image_utils import prepare_images_for_check
 from .Rules import CHAR_TYPE_RULES
 
 """
@@ -20,32 +19,20 @@ def get_char_type(y):
 """
 
 def get_char_acc(images, phoneme_img_list, stroke_points, practice_syllabus):
-    return get_char_acc_final(images, phoneme_img_list, stroke_points, practice_syllabus)
-
-#4차 스테이지 : 디테일 평가 (구버전)
-def get_char_acc_old(images, phoneme_img_list, stroke_points, practice_syllabus):
     #char_type = get_char_type(char_info)
 
     char_type = -1
+    last_is_null = False
     
     char_decom = char_decompose(practice_syllabus)
 
-    if char_decom[0][2] == ' ':
-        if CHAR_TYPE_RULES[char_decom[0][1]] == 0:
-            char_type = 0
-        elif CHAR_TYPE_RULES[char_decom[0][1]] == 2:
-            char_type = 2
-        else:
-            char_type = 4
+    if char_decom[0][2] == '':
+        last_is_null = True
+        char_type = CHAR_TYPE_RULES[char_decom[0][1]]
     else:
-        if CHAR_TYPE_RULES[char_decom[0][1]] == 0:
-            char_type = 1
-        elif CHAR_TYPE_RULES[char_decom[0][1]] == 2:
-            char_type = 3
-        else:
-            char_type = 5
-
-    if char_type == 1 or char_type == 3 or char_type == 5:
+        char_type = CHAR_TYPE_RULES[char_decom[0][1]]
+        
+    if last_is_null == False:
         
         char = np.array(images[0])
         Cell_1 = np.array(images[1])
@@ -64,79 +51,117 @@ def get_char_acc_old(images, phoneme_img_list, stroke_points, practice_syllabus)
         
 
         char_size = (char_coord[1][0] - char_coord[0][0]) * (char_coord[2][1] - char_coord[0][1])
-
-        errormsg = ""
-
-        if char_size == 0:
-            errormsg = errormsg+ ("글씨가 너무 작아 알아볼 수 없어요...\n")
-            return False, errormsg, None
-        
         Cell_1_size = (Cell_1_coord[1][0] - Cell_1_coord[0][0]) * (Cell_1_coord[2][1] - Cell_1_coord[0][1])
         Cell_2_size = (Cell_2_coord[1][0] - Cell_2_coord[0][0]) * (Cell_2_coord[2][1] - Cell_2_coord[0][1])
         Cell_3_size = (Cell_3_coord[1][0] - Cell_3_coord[0][0]) * (Cell_3_coord[2][1] - Cell_3_coord[0][1])
 
-        if char_type == 1:
+        errormsg = ""
+
+        if char_type == 0:
             #   사이즈에 대한 오류를 에러 코드로 표시한 후, return하고 한 번에 출력하는 것은 어떤가?
-            Cell_ratio_1_ans = 0.19369323922834714
-            Cell_ratio_2_ans = 0.2088962039269306
-            Cell_ratio_3_ans = 0.23924792306962553
+            Cell_ratio_1_ans = 0.2813292884721456
+            Cell_ratio_2_ans = 0.2124931053502482
+            Cell_ratio_3_ans = 0.2214561500275786
 
-            if Cell_1_size / char_size > Cell_ratio_1_ans * 1.4:
-                errormsg = errormsg + ("초성의 크기가 너무 커요...\n")
-            elif Cell_1_size / char_size < Cell_ratio_1_ans * 0.6:
-                errormsg = errormsg + ("초성의 크기가 너무 작아요...\n")
-
-            if Cell_2_size / char_size > Cell_ratio_2_ans * 1.4:
-                errormsg = errormsg + ("중성의 크기가 너무 커요...\n")
-            elif Cell_2_size / char_size < Cell_ratio_2_ans * 0.6:
-                errormsg = errormsg + ("중성의 크기가 너무 작아요...\n")
-
-            if Cell_3_size / char_size > Cell_ratio_3_ans * 1.4:
-                errormsg = errormsg + ("종성의 크기가 너무 커요...\n")
-            elif Cell_3_size / char_size < Cell_ratio_3_ans * 0.6:
-                errormsg = errormsg + ("종성의 크기가 너무 작아요...\n")
                 
+        elif char_type == 1:
+            
+            Cell_ratio_1_ans = 0.34016940109377086
+            Cell_ratio_2_ans = 0.27611044417767105
+            Cell_ratio_3_ans = 0.2702080832332933
+
+        elif char_type == 2:
+            
+            Cell_ratio_1_ans = 0.23140671483212918
+            Cell_ratio_2_ans = 0.2967032967032967
+            Cell_ratio_3_ans = 0.3183777548418432
+
         elif char_type == 3:
             
-            Cell_ratio_1_ans = 0.2160306845003934
-            Cell_ratio_2_ans = 0.22580645161290322
-            Cell_ratio_3_ans = 0.23797736488531138
+            Cell_ratio_1_ans = 0.24609920466274057
+            Cell_ratio_2_ans = 0.6538461538461539
+            Cell_ratio_3_ans = 0.23878331613138243
 
-            if Cell_1_size / char_size > Cell_ratio_1_ans * 1.4:
-                errormsg = errormsg + ("초성의 크기가 너무 커요...\n")
-            elif Cell_1_size / char_size < Cell_ratio_1_ans * 0.6:
-                errormsg = errormsg + ("초성의 크기가 너무 작아요...\n")
-
-            if Cell_2_size / char_size > Cell_ratio_2_ans * 1.4:
-                errormsg = errormsg + ("중성의 크기가 너무 커요...\n")
-            elif Cell_2_size / char_size < Cell_ratio_2_ans * 0.6:
-                errormsg = errormsg + ("중성의 크기가 너무 작아요...\n")
-
-            if Cell_3_size / char_size > Cell_ratio_3_ans * 1.4:
-                errormsg = errormsg + ("종성의 크기가 너무 커요...\n")
-            elif Cell_3_size / char_size < Cell_ratio_3_ans * 0.6:
-                errormsg = errormsg + ("종성의 크기가 너무 작아요...\n")
+        elif char_type == 4:
+            
+            Cell_ratio_1_ans = 0.2636893799877225
+            Cell_ratio_2_ans = 0.08888888888888889
+            Cell_ratio_3_ans = 0.24843462246777165
 
         elif char_type == 5:
             
-            Cell_ratio_1_ans = 0.2327110698845472
-            Cell_ratio_2_ans = 0.7165095824153981
-            Cell_ratio_3_ans = 0.19951632406287786
+            Cell_ratio_1_ans = 0.351661610590182
+            Cell_ratio_2_ans = 0.111003861003861
+            Cell_ratio_3_ans = 0.27682018753447324
 
-            if Cell_1_size / char_size > Cell_ratio_1_ans * 1.4:
-                errormsg = errormsg + ("초성의 크기가 너무 커요...\n")
-            elif Cell_1_size / char_size < Cell_ratio_1_ans * 0.6:
-                errormsg = errormsg + ("초성의 크기가 너무 작아요...\n")
+        elif char_type == 6:
+            
+            Cell_ratio_1_ans = 0.28768624014022787
+            Cell_ratio_2_ans = 0.24536747214223112
+            Cell_ratio_3_ans = 0.24668210842619256
 
-            if Cell_2_size / char_size > Cell_ratio_2_ans * 1.4:
-                errormsg = errormsg + ("중성의 크기가 너무 커요...\n")
-            elif Cell_2_size / char_size < Cell_ratio_2_ans * 0.6:
-                errormsg = errormsg + ("중성의 크기가 너무 작아요...\n")
+        elif char_type == 7:
+            
+            Cell_ratio_1_ans = 0.28768624014022787
+            Cell_ratio_2_ans = 0.33150744960560913
+            Cell_ratio_3_ans = 0.24668210842619256
 
-            if Cell_3_size / char_size > Cell_ratio_3_ans * 1.4:
-                errormsg = errormsg + ("종성의 크기가 너무 커요...\n")
-            elif Cell_3_size / char_size < Cell_ratio_3_ans * 0.6:
-                errormsg = errormsg + ("종성의 크기가 너무 작아요...\n")
+        elif char_type == 8:
+            
+            Cell_ratio_1_ans = 0.19102835939570634
+            Cell_ratio_2_ans = 0.5969387755102041
+            Cell_ratio_3_ans = 0.2500662602703419
+
+        elif char_type == 9:
+            
+            Cell_ratio_1_ans = 0.1989795918367347
+            Cell_ratio_2_ans = 0.6428571428571429
+            Cell_ratio_3_ans = 0.26672152732060567
+            
+        elif char_type == 10:
+            
+            Cell_ratio_1_ans = 0.17007839721254356
+            Cell_ratio_2_ans = 0.6326530612244898
+            Cell_ratio_3_ans = 0.642297162767546
+
+        elif char_type == 11:
+            
+            Cell_ratio_1_ans = 0.1394453486916239
+            Cell_ratio_2_ans = 0.6071428571428571
+            Cell_ratio_3_ans = 0.23278452485288595
+            
+        elif char_type == 12:
+            
+            Cell_ratio_1_ans = 0.17447679708826205
+            Cell_ratio_2_ans = 0.6275510204081632
+            Cell_ratio_3_ans = 0.23446639802417782
+
+        elif char_type == 13:
+            
+            Cell_ratio_1_ans = 0.15816326530612246
+            Cell_ratio_2_ans = 0.6071428571428571
+            Cell_ratio_3_ans = 0.2021615097651964
+
+        elif char_type == 14:
+            
+            Cell_ratio_1_ans = 0.18979591836734694
+            Cell_ratio_2_ans = 0.6632653061224489
+            Cell_ratio_3_ans = 0.24479921000658328
+            
+        if Cell_1_size / char_size > Cell_ratio_1_ans * 1.3:
+            errormsg = errormsg + ("첫 번째 글자의 크기가 너무 커요...\n")
+        elif Cell_1_size / char_size < Cell_ratio_1_ans * 0.7:
+            errormsg = errormsg + ("첫 번째 글자의 크기가 너무 작아요...\n")
+
+        if Cell_2_size / char_size > Cell_ratio_2_ans * 1.3:
+            errormsg = errormsg + ("두 번째 글자의  크기가 너무 커요...\n")
+        elif Cell_2_size / char_size < Cell_ratio_2_ans * 0.7:
+            errormsg = errormsg + ("두 번째 글자의 크기가 너무 작아요...\n")
+
+        if Cell_3_size / char_size > Cell_ratio_3_ans * 1.3:
+            errormsg = errormsg + ("세 번째 글자의 크기가 너무 커요...\n")
+        elif Cell_3_size / char_size < Cell_ratio_3_ans * 0.7:
+            errormsg = errormsg + ("세 번째 글자의 크기가 너무 작아요...\n")
             
         
     else:
@@ -150,175 +175,100 @@ def get_char_acc_old(images, phoneme_img_list, stroke_points, practice_syllabus)
 
 
         char_size = (char_coord[1][0] - char_coord[0][0]) * (char_coord[2][1] - char_coord[0][1])
-        errormsg = ""
-
-        if char_size == 0:
-            errormsg = errormsg+ ("글씨가 너무 작아 알아볼 수 없어요...\n")
-            return False, errormsg, None
         Cell_1_size = (Cell_1_coord[1][0] - Cell_1_coord[0][0]) * (Cell_1_coord[2][1] - Cell_1_coord[0][1])
         Cell_2_size = (Cell_2_coord[1][0] - Cell_2_coord[0][0]) * (Cell_2_coord[2][1] - Cell_2_coord[0][1])
 
+        errormsg = ""
         
         if char_type == 0:
+            #   사이즈에 대한 오류를 에러 코드로 표시한 후, return하고 한 번에 출력하는 것은 어떤가?
+            Cell_ratio_1_ans = 0.32366723634158445
+            Cell_ratio_2_ans = 0.36363636363636365
 
-            Cell_ratio_1_ans = 0.29048645096380044
-            Cell_ratio_2_ans = 0.3886838868388684
-
-            if Cell_1_size / char_size > Cell_ratio_1_ans * 1.4:
-                errormsg = errormsg + ("초성의 크기가 너무 커요...\n")
-            elif Cell_1_size / char_size < Cell_ratio_1_ans * 0.6:
-                errormsg = errormsg + ("초성의 크기가 너무 작아요...\n")
-
-            if Cell_2_size / char_size > Cell_ratio_2_ans * 1.4:
-                errormsg = errormsg + ("중성의 크기가 너무 커요...\n")
-            elif Cell_2_size / char_size < Cell_ratio_2_ans * 0.6:
-                errormsg = errormsg + ("중성의 크기가 너무 작아요...\n")
+                
+        elif char_type == 1:
+            
+            Cell_ratio_1_ans = 0.39302450127192395
+            Cell_ratio_2_ans = 0.4805194805194805
 
         elif char_type == 2:
             
-            Cell_ratio_1_ans = 0.3032908672759184
-            Cell_ratio_2_ans = 0.45161290322580644
+            Cell_ratio_1_ans = 0.49974164314956876
+            Cell_ratio_2_ans = 0.5611510791366906
 
-            if Cell_1_size / char_size > Cell_ratio_1_ans * 1.4:
-                errormsg = errormsg + ("초성의 크기가 너무 커요...\n")
-            elif Cell_1_size / char_size < Cell_ratio_1_ans * 0.6:
-                errormsg = errormsg + ("초성의 크기가 너무 작아요...\n")
-
-            if Cell_2_size / char_size > Cell_ratio_2_ans * 1.4:
-                errormsg = errormsg + ("중성의 크기가 너무 커요...\n")
-            elif Cell_2_size / char_size < Cell_ratio_2_ans * 0.6:
-                errormsg = errormsg + ("중성의 크기가 너무 작아요...\n")
+        elif char_type == 3:
+            
+            Cell_ratio_1_ans = 0.3153516667701285
+            Cell_ratio_2_ans = 0.5730337078651685
 
         elif char_type == 4:
+            
+            Cell_ratio_1_ans = 0.5494616284227931
+            Cell_ratio_2_ans = 0.11678832116788321
 
-            Cell_ratio_1_ans = 0.25411096466453276
+        elif char_type == 5:
+                        
+            Cell_ratio_1_ans = 0.40350515463917525
+            Cell_ratio_2_ans = 0.18666666666666668
+
+        elif char_type == 6:
+                        
+            Cell_ratio_1_ans = 0.30639687520010245
+            Cell_ratio_2_ans = 0.43478260869565216
+
+        elif char_type == 7:
+            
+            Cell_ratio_1_ans = 0.30639687520010245
+            Cell_ratio_2_ans = 0.5652173913043478
+
+        elif char_type == 8:
+            
+            Cell_ratio_1_ans = 0.24675324675324675
+            Cell_ratio_2_ans = 1.0  
+
+        elif char_type == 9:
+            
+            Cell_ratio_1_ans = 0.23870967741935484
+            Cell_ratio_2_ans = 1.0
+
+        elif char_type == 10:
+            
+            Cell_ratio_1_ans = 0.16237113402061856
+            Cell_ratio_2_ans = 1.0
+
+        elif char_type == 11:
+                        
+            Cell_ratio_1_ans = 0.1806337360065777
+            Cell_ratio_2_ans = 1.0
+
+        elif char_type == 12:
+            
+            Cell_ratio_1_ans = 0.2229299363057325
+            Cell_ratio_2_ans = 1.0
+
+        elif char_type == 13:
+            
+            Cell_ratio_1_ans = 0.20219487861656135
+            Cell_ratio_2_ans = 1.0
+
+        elif char_type == 14:
+            
+            Cell_ratio_1_ans = 0.22903225806451613
             Cell_ratio_2_ans = 1.0
             
-            if Cell_1_size / char_size > Cell_ratio_1_ans * 1.4:
-                errormsg = errormsg + ("초성의 크기가 너무 커요...\n")
-            elif Cell_1_size / char_size < Cell_ratio_1_ans * 0.6:
-                errormsg = errormsg + ("초성의 크기가 너무 작아요...\n")
+        if Cell_1_size / char_size > Cell_ratio_1_ans * 1.3:
+            errormsg = errormsg + ("첫 번째 글자의 크기가 너무 커요...\n")
+        elif Cell_1_size / char_size < Cell_ratio_1_ans * 0.7:
+            errormsg = errormsg + ("첫 번째 글자의 크기가 너무 작아요...\n")
 
-            if Cell_2_size / char_size > Cell_ratio_2_ans * 1.4:
-                errormsg = errormsg + ("중성의 크기가 너무 커요...\n")
-            elif Cell_2_size / char_size < Cell_ratio_2_ans * 0.6:
-                errormsg = errormsg + ("중성의 크기가 너무 작아요...\n")
+        if Cell_2_size / char_size > Cell_ratio_2_ans * 1.3:
+            errormsg = errormsg + ("두 번째 글자의  크기가 너무 커요...\n")
+        elif Cell_2_size / char_size < Cell_ratio_2_ans * 0.7:
+            errormsg = errormsg + ("두 번째 글자의 크기가 너무 작아요...\n")
 
                 
     if errormsg == "":
-        return True, None, None
+        return True, None
     else:
-        return False, errormsg, None
+        return False, errormsg
                 
-
-#4차 스테이지 : 음절 디테일 평가 (신버전) || 현재 사용중
-def get_char_acc_final(img_tot, images, stroke_counts, practice_syllabus):
-
-    """
-    글자의 디테일 요소 (크기 밸런스, 자모 거리, 기울기 등) 평가 (4차 필터)
-
-    Parameters:
-        img_tot (bytes): 병합된 글자 이미지 (PNG 포맷의 바이트)
-        images : 자모 이미지
-        stroke_counts (list): 획 개수 리스트 (자모 분리용 기준)
-        practice_syllabus (str): 기준 글자
-    
-    Returns:
-        tuple(bool, str or None, str or None):
-            - bool: 필터 통과 여부
-            - str: 실패 이유 (통과 시 None)
-            - str: 디버그용 내부 상태
-    """
-
-    # --- 설정 ---
-    TOLERANCE_UPPER = 1.4
-    TOLERANCE_LOWER = 0.6
-    RATIO_RULES = {
-        0: (0.29048, 0.38868),                      # 받침X, 세로모음 (가)
-        1: (0.19369, 0.20889, 0.23924),             # 받침O, 세로모음 (각)
-        2: (0.30329, 0.45161),                      # 받침X, 가로모음 (고)
-        3: (0.21603, 0.22580, 0.23797),             # 받침O, 가로모음 (곡)
-        4: (0.25411, 1.0),                          # 받침X, 복합모음 (과)
-        5: (0.23271, 0.71650, 0.19951)              # 받침O, 복합모음 (곽)
-    }
-    
-    # --- 내부 헬퍼 함수: 면적 계산 ---
-    def _calculate_area(pil_image):
-        bw_image = pil_image.convert("L")
-        img_array = np.array(bw_image)
-        is_char_mask = img_array < 255
-        if not np.any(is_char_mask): return 0
-        rows, cols = np.where(np.any(is_char_mask, axis=1))[0], np.where(np.any(is_char_mask, axis=0))[0]
-        return (cols[-1] - cols[0] + 1) * (rows[-1] - rows[0] + 1)
-
-    # --- 1. 이미지 준비 ---
-    image_list = prepare_images_for_check(img_tot, images, stroke_counts)
-
-    # --- 2. 한글 구조 분석 ---
-    try:
-        char_decom = char_decompose(practice_syllabus)
-        has_jongseong = char_decom[0][2] != ' '
-        vowel_type = CHAR_TYPE_RULES[char_decom[0][1]]
-
-        if not has_jongseong:
-            if vowel_type == 0: char_type = 0       # 받침X, 세로모음 (가)
-            elif vowel_type == 2: char_type = 2     # 받침X, 가로모음 (고)
-            else: char_type = 4                     # 받침X, 복합모음 (과)
-        else:
-            if vowel_type == 0: char_type = 1       # 받침O, 세로모음 (각)
-            elif vowel_type == 2: char_type = 3     # 받침O, 가로모음 (곡)
-            else: char_type = 5                     # 받침O, 복합모음 (곽)
-    except Exception:
-        return False, f"'{practice_syllabus}' 글자 구조를 분석할 수 없어요.", None
-
-    # --- 3. 면적 계산 ---
-    char_img, *jamo_images = image_list
-    char_size = _calculate_area(char_img)
-
-    #크기 계산이 안되는 경우
-    if char_size == 0:
-        return False, "글씨가 너무 작아 알아볼 수 없어요...", None
-    
-
-    cell_sizes = [_calculate_area(img) for img in jamo_images]
-    
-    # --- 4. 크기 비율 검사 ---
-    ans_ratios = RATIO_RULES.get(char_type)
-    if ans_ratios is None:
-        return False, f"'{practice_syllabus}' 글자 (타입 {char_type})에 대한 규칙을 찾을 수 없어요.", None
-
-    component_names, errors = ["초성", "중성", "종성"], []
-    for i, size in enumerate(cell_sizes):
-        if i >= len(ans_ratios): continue
-        ratio, ans_ratio, name = size / char_size, ans_ratios[i], component_names[i]
-        if ratio > ans_ratio * TOLERANCE_UPPER: errors.append(f"{name}의 크기가 너무 커요...")
-        elif ratio < ans_ratio * TOLERANCE_LOWER: errors.append(f"{name}의 크기가 너무 작아요...")
-            
-    # --- 5. 최종 결과 반환 ---
-    
-    # --- 디버그 정보 생성 (성공/실패와 상관없이 항상 생성) ---
-    debug_lines = []
-    header = (
-        f"입력 글자: '{practice_syllabus}' (타입: {char_type})\n"
-        f"글자의 전체크기: {char_size}px\n"
-    )
-    debug_lines.append(header)
-
-    for i, size in enumerate(cell_sizes):
-        # cell_sizes와 ans_ratios 길이가 다를 수 있으므로 안전장치 추가
-        if i >= len(ans_ratios): continue
-            
-        ratio = size / char_size
-        ans_ratio = ans_ratios[i]
-        name = component_names[i]
-        
-        line = f"[{name}] 크기: {size}px | 계산 비율: {ratio:.3f} | 정답 비율: {ans_ratio:.3f}"
-        debug_lines.append(line)
-    
-    final_debug_string = "\n".join(debug_lines)
-
-    # --- 오류 여부에 따라 결과와 함께 디버그 정보 반환 ---
-    if not errors:
-        return True, None, final_debug_string
-    else:
-        return False, "\n".join(errors), final_debug_string

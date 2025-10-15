@@ -53,12 +53,6 @@ jobs:
             # 2. GitHub 저장소에서 최신 변경사항을 받아옵니다.
             git pull origin main
 
-            # docker-compose.yml에서 마운트할 인증서와 키 파일을 생성합니다.
-            echo "--- Generating self-signed SSL certificate ---"
-            mkdir -p ./certs
-            echo "${{ secrets.SSL_CERTIFICATE }}" > ./certs/selfsigned.crt
-            echo "${{ secrets.SSL_KEY }}" > ./certs/selfsigned.key
-            chmod 644 ./certs/selfsigned.key
             # --------------------------------------------------------------------
             # 3. docker-compose가 사용할 .env 파일을 모든 Secrets를 포함하여 동적으로 생성합니다.
 

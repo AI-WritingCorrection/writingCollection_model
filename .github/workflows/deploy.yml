@@ -56,10 +56,9 @@ jobs:
             # docker-compose.yml에서 마운트할 인증서와 키 파일을 생성합니다.
             echo "--- Generating self-signed SSL certificate ---"
             mkdir -p ./certs
-            openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-              -keyout ./certs/selfsigned.key \
-              -out ./certs/selfsigned.crt \
-              -subj "/C=KR/ST=Seoul/L=Seoul/O=FlySTU/OU=FlySTU/CN=52.78.166.204"
+            echo "${{ secrets.SSL_CERTIFICATE }}" > ./certs/selfsigned.crt
+            echo "${{ secrets.SSL_KEY }}" > ./certs/selfsigned.key
+            
             # --------------------------------------------------------------------
             # 3. docker-compose가 사용할 .env 파일을 모든 Secrets를 포함하여 동적으로 생성합니다.
 

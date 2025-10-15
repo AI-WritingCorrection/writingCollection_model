@@ -37,6 +37,7 @@ services:
     restart: always
     ports:
       - "80:80" # 외부 80번 포트를 Nginx 80번 포트로 연결
+      - "443:443" # 외부 443번 포트를 Nginx 443번 포트로 연결
     volumes:
       # 로컬의 nginx.conf 파일을 컨테이너의 설정 파일 위치에 마운트
       # 이 파일이 로컬에 존재해야 함

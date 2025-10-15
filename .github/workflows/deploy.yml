@@ -58,7 +58,7 @@ jobs:
             mkdir -p ./certs
             echo "${{ secrets.SSL_CERTIFICATE }}" > ./certs/selfsigned.crt
             echo "${{ secrets.SSL_KEY }}" > ./certs/selfsigned.key
-            
+            chmod 644 ./certs/selfsigned.key
             # --------------------------------------------------------------------
             # 3. docker-compose가 사용할 .env 파일을 모든 Secrets를 포함하여 동적으로 생성합니다.
 
@@ -95,6 +95,19 @@ jobs:
             sudo chcon -t container_file_t ./serviceAccountKey.json
             sudo chcon -t container_file_t ./nginx.conf
             sudo chcon -t container_file_t -R ./certs
+
+            # ✨ [핵심 디버깅 코드] 파일 생성 상태를 강제로 확인합니다.
+            echo "--- [DEBUG] Verifying generated files ---"
+            
+            echo "--- 1. Listing all files and directories recursively ---"
+            # 현재 폴더 구조를 자세히 출력해서 certs 폴더와 파일이 있는지 확인
+            ls -lR .
+            
+            echo "--- 2. Checking certificate file content ---"
+            # 인증서 파일의 내용이 비어있지 않은지 확인
+            cat ./certs/selfsigned.crt
+            
+            echo "--- [DEBUG] Verification complete ---"
             
             # 5. Docker Hub 로그인
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}

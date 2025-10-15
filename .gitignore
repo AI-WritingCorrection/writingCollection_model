@@ -9,4 +9,5 @@ __pycache__/
 # Environment
 .env
 writingcorrection_firebase_service_account.json
+serviceAccountKey.json
 

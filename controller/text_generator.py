@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter
 from dto.generatorDTO import TextRequest
 from pydantic import BaseModel

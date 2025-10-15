@@ -20,7 +20,7 @@ ALLOWED_IMAGE_TYPES = {
     "image/png": "png",
     "image/webp": "webp",
 }
-MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5MB
+MAX_UPLOAD_SIZE = 20 * 1024 * 1024  # 20MB
 UPLOAD_DIR = os.getenv("STATIC_PROFILE_DIR", "/srv/writing-collection/static/profile")
 PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL")  # e.g., https://your-domain.com
 

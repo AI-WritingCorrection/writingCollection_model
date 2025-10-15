@@ -5,6 +5,7 @@ import controller.evaluation  as evaluate
 import controller.auth as auth
 import controller.get_fromDB as loadData
 import controller.userController as loadUser
+import controller.text_generator as text_generator
 
 #http://127.0.0.1:8000/docs
 app = FastAPI(title="AI-HandWriting-Evaluation")
@@ -12,6 +13,7 @@ app.include_router(evaluate.router, prefix="/api/step", tags=["Evaluation"])
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
 app.include_router(loadData.router, prefix="/api/data", tags=["Data"])
 app.include_router(loadUser.router, prefix="/api/user", tags=["User"])
+app.include_router(text_generator.router, prefix="/api/text", tags=["TextGenerator"])
 
 # 허용할 출처(Origin) 목록을 정의합니다. 
 origins = [

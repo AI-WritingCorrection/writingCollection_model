@@ -70,6 +70,9 @@ jobs:
             echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
             echo "JWT_ALGORITHM=${{ secrets.JWT_ALGORITHM }}" >> .env
             echo "JWT_ACCESS_EXPIRE_MINUTES=${{ secrets.JWT_ACCESS_EXPIRE_MINUTES }}" >> .env
+
+            # Gemini Key 설정
+            echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
             
             # 기타 애플리케이션 설정
             echo "STATIC_PROFILE_DIR=/app/static/profile" >> .env

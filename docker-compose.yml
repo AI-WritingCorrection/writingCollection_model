@@ -42,8 +42,8 @@ services:
       # 로컬의 nginx.conf 파일을 컨테이너의 설정 파일 위치에 마운트
       # 이 파일이 로컬에 존재해야 함
       - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./ssl/selfsigned.crt:/etc/ssl/certs/selfsigned.crt
-      - ./ssl/selfsigned.key:/etc/ssl/private/selfsigned.key
+      - ./certs/selfsigned.crt:/etc/ssl/certs/selfsigned.crt
+      - ./certs/selfsigned.key:/etc/ssl/private/selfsigned.key
       # 호스트(EC2)의 ./static 디렉터리를 컨테이너의 /app/static 디렉터리로 연결
       - ./static:/app/static
     depends_on:

@@ -53,6 +53,13 @@ jobs:
             # 2. GitHub 저장소에서 최신 변경사항을 받아옵니다.
             git pull origin main
 
+            # docker-compose.yml에서 마운트할 인증서와 키 파일을 생성합니다.
+            echo "--- Generating self-signed SSL certificate ---"
+            mkdir -p ./certs
+            openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+              -keyout ./certs/selfsigned.key \
+              -out ./certs/selfsigned.crt \
+              -subj "/C=KR/ST=Seoul/L=Seoul/O=FlySTU/OU=FlySTU/CN=52.78.166.204"
             # --------------------------------------------------------------------
             # 3. docker-compose가 사용할 .env 파일을 모든 Secrets를 포함하여 동적으로 생성합니다.
 
@@ -88,6 +95,7 @@ jobs:
 
             sudo chcon -t container_file_t ./serviceAccountKey.json
             sudo chcon -t container_file_t ./nginx.conf
+            sudo chcon -t container_file_t -R ./certs
             
             # 5. Docker Hub 로그인
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}

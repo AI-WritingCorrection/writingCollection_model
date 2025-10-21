@@ -6,16 +6,6 @@ from domain.typeEnum import AuthProvider
 
 # User 관련 dto들
 
-#User 가입할 때 DTO
-# class UserCreate(BaseModel):
-#     id_token: str
-#     # firebase_uid: str
-#     email: str
-#     nickname: str
-#     profile_pic: Optional[str]
-#     birthdate: datetime
-#     provider: AuthProvider
-
 class UserCreate(BaseModel):
     id_token: str
     email: str

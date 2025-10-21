@@ -19,8 +19,9 @@ ALLOWED_IMAGE_TYPES = {
     "image/pjpeg": "jpg",   # 오래된 브라우저/카메라에서 쓰는 progressive jpeg
     "image/png": "png",
     "image/webp": "webp",
+    "image/heif": "heic",
 }
-MAX_UPLOAD_SIZE = 20 * 1024 * 1024  # 20MB
+MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10MB
 UPLOAD_DIR = os.getenv("STATIC_PROFILE_DIR", "/srv/writing-collection/static/profile")
 PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL")  # e.g., https://your-domain.com
 
@@ -51,7 +52,7 @@ async def upload_profile_image(
     """
     프로필 이미지를 업로드하고 User.profile_pic(URL)을 갱신합니다.
     - multipart/form-data 로 파일을 전송해야 합니다. 필드명: 'file'
-    - 허용 포맷: jpeg/png/webp, 최대 크기: 5MB
+    - 허용 포맷: jpeg/png/webp/heic, 최대 크기: 5MB
     - 저장 경로: static/profile/
     - 반환: {"data": {"profile_pic_url": "<완성 URL>"}}
     """

@@ -53,20 +53,3 @@ def get_mission_records_for_user(user_id: int, db: Session = Depends(get_db)):
         print(f"Error fetching mission records for user {user_id}: {e}")
         return []
 
-# # Fetch practice records by user_id
-# @router.get("/practicerecords/{user_id}", response_model=List[PracticeRecordSchema])
-# def get_practice_records_for_user(user_id: int, db: Session = Depends(get_db)):
-#     """
-#     특정 user_id에 해당하는 practice record 리스트를 반환합니다.
-#     """
-#     try:
-#         records = (
-#             db.query(Practicerecord)
-#               .filter(Practicerecord.user_id == user_id)
-#               .order_by(Practicerecord.id.asc())
-#               .all()
-#         )
-#         return records
-#     except Exception as e:
-#         print(f"Error fetching practice records for user {user_id}: {e}")
-#         return []

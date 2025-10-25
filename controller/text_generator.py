@@ -19,20 +19,34 @@ router = APIRouter()
 
 # Gemini 호출 함수
 def generate_writing_practice_text(form: str, length: int, con: str) -> str:
-    """ 글쓰기 연습을 위한 텍스트를 생성하는 함수 (최고 속도 버전) """
-    model = genai.GenerativeModel('gemini-flash-lite-latest')
+    """ 글쓰기 연습을 위한 텍스트를 생성하는 함수 (다양성 확보 버전) """
+    model = genai.GenerativeModel('gemini-flash-latest')
+
     prompt = f"""
     너는 글쓰기 연습을 위한 텍스트를 생성하는 AI야. 아래 모든 조건을 완벽하게 지켜줘.
 
     1. 형식: '{form}'
     2. 수량: 오직 한 개의 '{form}'만 생성해줘.
-    3. 최대 길이: {length}자 (이 길이보다 짧아야 함)
-    4. 핵심 조건: '{con}'
+    3. 길이: {length}자 (same length)
+    4. 핵심 조건: '{con}' (모든글자가 이 조건을 만족할 필요는 없어, 하지만 최대한 많이 포함시켜줘)
     5. 추가 규칙: 문장 부호나 특수문자 없이 오직 한글로만 작성해.
     6. 출력 형식: 다른 설명, 인사, 줄바꿈 없이, 조건에 맞는 결과물 **딱 하나만** 응답해줘.
+    7. 중요: **매번 호출할 때마다 다른, 무작위의 새로운 결과**를 생성해야 해. 절대 이전에 생성한 것과 겹치지 않게 해.
     """
+
+    # temperature 값을 높여서(예: 0.8 ~ 1.0) 더 다양한 답변을 유도
+    generation_config = {
+        "temperature": 0.9,  # 0.0(결정적) ~ 1.0(최대 무작위성)
+        # "top_p": 1, (필요시 조절)
+        # "top_k": 1, (필요시 조절)
+    }
+
     try:
-        response = model.generate_content(prompt)
+        # 3. [수정] generate_content 호출 시 generation_config 전달
+        response = model.generate_content(
+            prompt,
+            generation_config=generation_config
+        )
         return response.text.strip()
     except Exception as e:
         print(f"API 호출 중 에러 발생: {e}")

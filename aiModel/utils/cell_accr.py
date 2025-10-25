@@ -343,8 +343,8 @@ def get_char_acc_integrated(img_tot, images, stroke_counts, practice_syllabus):
     """
 
     # --- 설정: 허용 오차 범위와 규칙을 적용 ---
-    TOLERANCE_UPPER = 1.3
-    TOLERANCE_LOWER = 0.7
+    TOLERANCE_UPPER = 1.5
+    TOLERANCE_LOWER = 0.5
     
     # 규칙: (자모 크기 비율, 자모 가로세로 비율)을 튜플로 묶어서 관리
     RATIO_RULES = {

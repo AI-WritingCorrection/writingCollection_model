@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from domain.typeEnum import WritingType
 
@@ -9,5 +9,4 @@ class StepSchema(BaseModel):
     step_character: str
     step_text: str
     step_time: int
-
-    model_config = { "from_attributes": True }  # orm_mode 대체
+    model_config = ConfigDict(from_attributes=True)

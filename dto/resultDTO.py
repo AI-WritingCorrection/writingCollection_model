@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Dict, List, Optional
 
 class Offset(BaseModel):
@@ -13,16 +13,6 @@ class ResultCreate(BaseModel):
     cell_images: Dict[str, List[str]]  # Base64 이미지 문자열 리스트
     detailed_strokecounts: Dict[str, List[int]] # 각 글자자에 대한 세부 획수
     firstandlast_stroke: Dict[str, List[Offset]] # 각 획에 대한 첫 번째와 마지막 획의 좌표
-
-# Result 응답용 DTO(기존 사용 모델 || 구식모델)
-class ResultResponse(BaseModel):
-    score: int
-    summary: str
-    #recognized_texts : Dict[int,str]
-    class Config:
-        orm_mode = True
-
-
 
 # Result 응답용 DTO - 글자별 상세 결과
 class CharacterResult(BaseModel):
@@ -42,3 +32,4 @@ class ResultResponse(BaseModel):
     summary: List[str]
     feedback: List[List[Optional[str]]]
     results: List[CharacterResult] 
+    model_config = ConfigDict(from_attributes=True)

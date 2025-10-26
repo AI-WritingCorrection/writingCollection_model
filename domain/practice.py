@@ -11,5 +11,5 @@ class Practice(Base):
     practice_text = Column(String(500), nullable=False)
     practice_type = Column(Enum(WritingType), nullable=False)
     practice_character = Column(String(100), nullable=False)
-
+    practice_tip = Column(String(500), nullable=True)
     practice_records = relationship("PracticeRecord", back_populates="practice", cascade="all, delete-orphan")

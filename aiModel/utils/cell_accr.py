@@ -20,7 +20,7 @@ def get_char_type(y):
 """
 
 def get_char_acc(images, phoneme_img_list, stroke_points, practice_syllabus):
-    return get_char_acc_final(images, phoneme_img_list, stroke_points, practice_syllabus)
+    return get_char_acc_integrated(images, phoneme_img_list, stroke_points, practice_syllabus) #최종 통합 버전 사용
 
 #4차 스테이지 : 디테일 평가 (구버전)
 def get_char_acc_old(images, phoneme_img_list, stroke_points, practice_syllabus):
@@ -318,6 +318,161 @@ def get_char_acc_final(img_tot, images, stroke_counts, practice_syllabus):
     final_debug_string = "\n".join(debug_lines)
 
     # --- 오류 여부에 따라 결과와 함께 디버그 정보 반환 ---
+    if not errors:
+        return True, None, final_debug_string
+    else:
+        return False, "\n".join(errors), final_debug_string
+    
+
+    # 최종 통합 버전:
+def get_char_acc_integrated(img_tot, images, stroke_counts, practice_syllabus):
+    """
+    글자의 디테일 요소 (자모별 크기, 가로세로 비율)를 종합적으로 평가 (최종 필터)
+
+    Parameters:
+        img_tot (bytes): 병합된 글자 이미지 (PNG 포맷의 바이트)
+        images (list): 분리된 자모 이미지 리스트
+        stroke_counts (list): 획 개수 리스트 (자모 분리용 기준)
+        practice_syllabus (str): 평가의 기준이 되는 글자 (예: '각')
+    
+    Returns:
+        tuple(bool, str or None, str or None):
+            - bool: 필터 통과 여부
+            - str: 실패 이유 (통과 시 None)
+            - str: 디버그용 내부 상태 정보
+    """
+
+    # --- 설정: 허용 오차 범위와 규칙을 적용 ---
+    TOLERANCE_UPPER = 1.5
+    TOLERANCE_LOWER = 0.5
+    
+    # 규칙: (자모 크기 비율, 자모 가로세로 비율)을 튜플로 묶어서 관리
+    RATIO_RULES = {
+        # 받침 O (초성, 중성, 종성)
+        "종성있음": {
+            0: ((0.2813, 1.0), (0.2124, 0.5826), (0.2214, 1.5068)),
+            1: ((0.3401, 1.0), (0.2761, 0.6260), (0.2702, 1.5205)),
+            2: ((0.2314, 1.9206), (0.2967, 3.3518), (0.3183, 1.2391)),
+            3: ((0.2460, 1.8059), (0.6538, 1.5210), (0.2387, 1.6521)),
+            4: ((0.2636, 1.7042), (0.0888, 11.3125), (0.2484, 1.6056)),
+            5: ((0.3516, 1.0), (0.1110, 0.2434), (0.2768, 1.5068)),
+            6: ((0.2876, 0.9009), (0.2453, 0.5726), (0.2466, 1.5633)),
+            7: ((0.2876, 0.9009), (0.3315, 0.7478), (0.2466, 1.5633)),
+            8: ((0.1910, 1.5), (0.5969, 1.3162), (0.2500, 1.6323)),
+            9: ((0.1989, 1.4307), (0.6428, 1.2301), (0.2667, 1.5205)),
+            10: ((0.1700, 1.0845), (0.6326, 1.3225), (0.6422, 0.5967)),
+            11: ((0.1394, 1.4727), (0.6071, 1.3697), (0.2327, 1.6567)),
+            12: ((0.1744, 1.5423), (0.6275, 1.2764), (0.2344, 1.7076)),
+            13: ((0.1581, 1.5), (0.6071, 1.5630), (0.2021, 1.6417)),
+            14: ((0.1897, 1.5), (0.6632, 1.1923), (0.2447, 1.6567)),
+        },
+        # 받침 X (초성, 중성)
+        "종성없음": {
+            0: ((0.3236, 0.9035), (0.3636, 0.3505)),
+            1: ((0.3930, 0.9035), (0.4805, 0.3814)),
+            2: ((0.4997, 1.2828), (0.5611, 2.3205)),
+            3: ((0.3153, 1.5875), (0.5730, 1.7745)),
+            4: ((0.5494, 1.1467), (0.1167, 11.3125)),
+            5: ((0.4035, 0.9035), (0.1866, 0.1443)),
+            6: ((0.3063, 0.7909), (0.4347, 0.3608)),
+            7: ((0.3063, 0.7909), (0.5652, 0.4690)),
+            8: ((0.2467, 1.2763), (1.0, 0.7938)),
+            9: ((0.2387, 1.3108), (1.0, 0.7989)),
+            10: ((0.1623, 1.3016), (1.0, 0.8453)),
+            11: ((0.1806, 1.2352), (1.0, 0.8402)),
+            12: ((0.2229, 1.3857), (1.0, 0.8092)),
+            13: ((0.2021, 1.2631), (1.0, 0.9587)),
+            14: ((0.2290, 1.3661), (1.0, 0.7989)),
+        }
+    }
+    
+    # --- 내부 헬퍼 함수: 면적과 가로세로 비율 계산 ---
+    def _calculate_metrics(pil_image):
+        bw_image = pil_image.convert("L")
+        img_array = np.array(bw_image)
+        is_char_mask = img_array < 255
+        
+        if not np.any(is_char_mask): return 0, 0
+
+        rows = np.where(np.any(is_char_mask, axis=1))[0]
+        cols = np.where(np.any(is_char_mask, axis=0))[0]
+        
+        height = rows[-1] - rows[0] + 1
+        width = cols[-1] - cols[0] + 1
+
+        area = width * height
+        aspect_ratio = width / height if height > 0 else 0
+        return area, aspect_ratio
+
+    # --- 1. 이미지 준비 ---
+    image_list = prepare_images_for_check(img_tot, images, stroke_counts)
+
+    # --- 2. 한글 구조 분석 ---
+    try:
+        char_decom = char_decompose(practice_syllabus)
+        has_jongseong = char_decom[0][2] != ' '
+
+        char_type = CHAR_TYPE_RULES[char_decom[0][1]] 
+    except Exception:
+        return False, f"'{practice_syllabus}' 글자 구조를 분석할 수 없어요.", None
+
+    # --- 3. 면적 및 비율 계산 ---
+    char_img, *jamo_images = image_list
+    char_size, _ = _calculate_metrics(char_img)
+
+    if char_size == 0:
+        return False, "글씨가 너무 작아 알아볼 수 없어요...", None
+    
+    cell_metrics = [_calculate_metrics(img) for img in jamo_images]
+    
+    # --- 4. 크기 및 가로세로 비율 검사 ---
+    key = "종성있음" if has_jongseong else "종성없음"
+    ans_ratios_set = RATIO_RULES.get(key, {}).get(char_type)
+
+    if ans_ratios_set is None:
+        return False, f"'{practice_syllabus}' 글자 (타입 {char_type})에 대한 규칙을 찾을 수 없어요.", None
+
+    component_names, errors = ["초성", "중성", "종성"], []
+    for i, metrics in enumerate(cell_metrics):
+        if i >= len(ans_ratios_set): continue
+        
+        size, aspect_ratio = metrics
+        ans_size_ratio, ans_aspect_ratio = ans_ratios_set[i]
+        name = component_names[i]
+        
+        current_size_ratio = size / char_size if char_size > 0 else 0
+
+        # 크기 검사 (상위 검사)
+        if current_size_ratio > ans_size_ratio * TOLERANCE_UPPER:
+            errors.append(f"{name}의 크기가 너무 커요...")
+            # 가로세로 비율 검사 (하위 검사)
+            if aspect_ratio > ans_aspect_ratio * TOLERANCE_UPPER: errors.append(f"    ㄴ 가로로 너무 길어요...")
+            elif aspect_ratio < ans_aspect_ratio * TOLERANCE_LOWER: errors.append(f"    ㄴ 세로로 너무 길어요...")
+        
+        elif current_size_ratio < ans_size_ratio * TOLERANCE_LOWER:
+            errors.append(f"{name}의 크기가 너무 작아요...")
+            # 가로세로 비율 검사 (하위 검사) 
+            if aspect_ratio > ans_aspect_ratio * TOLERANCE_UPPER: errors.append(f"    ㄴ 세로로 너무 짧아요...")
+            elif aspect_ratio < ans_aspect_ratio * TOLERANCE_LOWER: errors.append(f"    ㄴ 가로로 너무 짧아요...")
+
+    # --- 5. 최종 결과 반환 ---
+    # 디버그 정보 생성
+    debug_lines = [
+        f"입력 글자: '{practice_syllabus}' (타입: {char_type}, 종성유무: {has_jongseong})",
+        f"전체 글자 크기: {char_size}px"
+    ]
+    for i, metrics in enumerate(cell_metrics):
+        if i >= len(ans_ratios_set): continue
+        size, aspect_ratio = metrics
+        ans_size_ratio, ans_aspect_ratio = ans_ratios_set[i]
+        name = component_names[i]
+        
+        line = (f"[{name}] 크기: {size}px | 면적비율: {size/char_size:.3f} (정답: {ans_size_ratio:.3f}) | "
+                f"가로세로비: [{aspect_ratio:.3f} : 1] (정답: [{ans_aspect_ratio:.3f} : 1]) ")
+        debug_lines.append(line)
+    
+    final_debug_string = "\n".join(debug_lines)
+
     if not errors:
         return True, None, final_debug_string
     else:

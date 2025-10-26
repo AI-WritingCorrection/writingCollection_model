@@ -80,8 +80,6 @@ jobs:
             
             echo "--- .env file created successfully ---"
             # --------------------------------------------------------------------
-            sync
-            sleep 2
             
             # 4. Firebase 인증 키 파일 생성
             echo "${{ secrets.FIREBASE_CREDENTIALS_BASE64 }}" | base64 --decode > ./serviceAccountKey.json
@@ -94,12 +92,9 @@ jobs:
             # 5. Docker Hub 로그인
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
 
-            # 6. 기존 fastapi 컨테이너를 멈추고 삭제
-            docker-compose stop fastapi
-            docker-compose rm -f fastapi
+            # 6. 최신 이미지 pull 및 서버 재시작
+            docker-compose pull
+            docker-compose up -d --force-recreate
 
-            # 7. 오래된 이미지 정리
-            docker image prune -f
-
-            # 8. 모든 서비스를 시작 (이때 fastapi는 새로 생성됨)
-            docker-compose up -d
+            # 7. 오래된 이미지 정리(이미지 id는 매번 교체)
+            docker image prune -a -f

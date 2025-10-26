@@ -3,7 +3,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from database import get_db
 from domain.user import User
+from dto.statsDTO import StatsResponse
 from dto.userDTO import UserResponse
+from service.statsService import get_user_statistics
 from service.userService import get_user_by_id, update_profile_pic
 
 import os
@@ -39,9 +41,20 @@ def get_userProfile_from_db(user_id:int, db: Session = Depends(get_db)):
     except Exception as e:
         print(f"Error fetching mission records for user {user_id}: {e}")
         return []
-    
-# 프로필 사진을 업데이트 하는 함수
 
+# 해당 유저의 통계 정보를 가져오는 함수
+@router.get("/stats/{user_id}", response_model=list[StatsResponse])
+def get_user_stats(user_id: int, db: Session = Depends(get_db)):
+    
+    # 사용자 존재 여부 확인
+    user = get_user_by_id(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    statistics_data = get_user_statistics(db=db, user_id=user_id)
+    return statistics_data
+
+# 프로필 사진을 업데이트 하는 함수
 @router.post("/uploadProfileImage/{user_id}")
 async def upload_profile_image(
     user_id: int,

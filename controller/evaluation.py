@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from database import get_db
 from dto.resultDTO import ResultCreate, ResultResponse
-from service.missionRecordService import clear_mission_record, create_mission_record
+from service.missionRecordService import clear_mission_record, create_mission_record, update_submission_time
 from service.resultService import create_result
 from aiModel.utils.image_utils import merge_images
 from aiModel.utils.image_utils import decode_base64_image_list
@@ -125,11 +125,14 @@ async def evaluate_handwriting(payload: ResultCreate,  db: Session = Depends(get
         mission_record.mission_id,
         avg_score,
     )
-    
-    # 4) 기준점수 넘으면 MissionRecord 업데이트
-    PASSING_SCORE = 0.0
+
+    # 제출 시간 업데이트
+    update_submission_time(db, mission_record.mission_id)
+
+    # 4) 기준점수 넘으면 clear 처리
+    PASSING_SCORE = 60.0
     if avg_score >= PASSING_SCORE:
-        clear_mission_record(db, mission_record.mission_id)  # 내부에서 isCleared=True, clear_time=now() 처리
+        clear_mission_record(db, mission_record.mission_id)  
 
 
     #5) Response 반환

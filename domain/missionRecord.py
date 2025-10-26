@@ -10,7 +10,7 @@ class MissionRecord(Base):
     step_id = Column(Integer, ForeignKey("steps.step_id"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
     isCleared = Column(Boolean, nullable=False, default=False)
-    clear_time = Column(DateTime, nullable=True)
+    submission_time = Column(DateTime, nullable=True)
 
     user = relationship("User", back_populates="mission_records")
     step = relationship("Step", back_populates="mission_records")

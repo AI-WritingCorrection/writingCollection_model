@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from domain.typeEnum import WritingType
 
 
@@ -7,5 +7,4 @@ class PracticeSchema(BaseModel):
     practice_text: str
     practice_type: WritingType
     practice_character: str
-
-    model_config = { "from_attributes": True }  
+    model_config = ConfigDict(from_attributes=True)

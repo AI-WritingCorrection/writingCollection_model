@@ -26,12 +26,20 @@ def get_mission_record(db: Session, mission_id: int) -> MissionRecord:
 def get_user_mission_records(db: Session, user_id: int) -> list[MissionRecord]:
     return db.query(MissionRecord).filter(MissionRecord.user_id == user_id).all()
 
+# 제출 시간 업데이트
+def update_submission_time(db: Session, mission_id: int) -> MissionRecord:
+    mission_record = db.query(MissionRecord).filter(MissionRecord.mission_id == mission_id).first()
+    if mission_record:
+        mission_record.submission_time = datetime.now()
+        db.commit()
+        db.refresh(mission_record)
+    return mission_record
+
 # 기준점수 이상시 미션 클리어 처리
 def clear_mission_record(db: Session, mission_id: int) -> MissionRecord:
     mission_record = db.query(MissionRecord).filter(MissionRecord.mission_id == mission_id).first()
     if mission_record:
         mission_record.isCleared = True
-        mission_record.clear_time = datetime.now()  # Assuming you want to set the current time as clear time
         db.commit()
         db.refresh(mission_record)
     return mission_record

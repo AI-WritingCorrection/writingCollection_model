@@ -13,5 +13,5 @@ class Step(Base):
     step_character = Column(String(100), nullable=False)
     step_text = Column(String(500), nullable=False)
     step_time = Column(Integer, nullable=True, default=120)
-
+    step_tip = Column(String(500), nullable=True)
     mission_records = relationship("MissionRecord", back_populates="step", cascade="all, delete-orphan")    

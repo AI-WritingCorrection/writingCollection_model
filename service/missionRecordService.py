@@ -9,7 +9,7 @@ def create_mission_record(db: Session, payload: ResultCreate) -> MissionRecord:
         user_id=payload.user_id,
         step_id=payload.step_id,  
         isCleared=False, 
-        clear_time=None,  
+        submission_time=None,  
         result=None  
     )
 

@@ -15,10 +15,10 @@ COPY . .
 EXPOSE 8000
 
 # entrypoint.sh 스크립트에 실행 권한 부여
-RUN chmod +x /entrypoint.sh
+RUN chmod +x entrypoint.sh
 
 # 컨테이너 시작 시 entrypoint.sh를 실행하도록 설정
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh"]
 
 # 애플리케이션을 실행하는 명령어입니다.
 CMD ["gunicorn", "main:app", \

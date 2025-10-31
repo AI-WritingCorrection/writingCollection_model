@@ -23,5 +23,6 @@ ENTRYPOINT ["./entrypoint.sh"]
 # 애플리케이션을 실행하는 명령어입니다.
 CMD ["gunicorn", "main:app", \
      "-k", "uvicorn.workers.UvicornWorker", \
-     "-w", "4", \
-     "-b", "0.0.0.0:8000"]
+     "-w", "1", \
+     "-b", "0.0.0.0:8000", \
+     "--preload"]

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, Enum
 from sqlalchemy.orm import relationship
-from domain.typeEnum import AuthProvider
+from domain.typeEnum import AuthProvider, UserType
 from . import Base
 from domain.practiceRecord import PracticeRecord
 from domain.missionRecord import MissionRecord
@@ -18,6 +18,7 @@ class User(Base):
     nickname= Column(String(10), nullable=False)
     profile_pic= Column(String(500), nullable=True)
     birthdate= Column(DateTime, nullable=False)
+    user_type = Column(Enum(UserType), nullable=True, server_default=UserType.CHILD)  # UserType 열거형 사용
 
     # 두 테이블 간 양방향 관계를 설정
     mission_records= relationship("MissionRecord", back_populates="user", cascade="all, delete-orphan")

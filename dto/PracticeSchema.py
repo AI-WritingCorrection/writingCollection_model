@@ -7,4 +7,5 @@ class PracticeSchema(BaseModel):
     practice_text: str
     practice_type: WritingType
     practice_character: str
+    practice_tip: str
     model_config = ConfigDict(from_attributes=True)

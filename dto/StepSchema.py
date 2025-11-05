@@ -9,4 +9,5 @@ class StepSchema(BaseModel):
     step_character: str
     step_text: str
     step_time: int
+    step_tip: str
     model_config = ConfigDict(from_attributes=True)

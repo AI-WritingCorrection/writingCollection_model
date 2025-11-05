@@ -2,7 +2,7 @@ from fastapi import Form
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
-from domain.typeEnum import AuthProvider
+from domain.typeEnum import AuthProvider, UserType
 
 # User 관련 dto들
 
@@ -39,4 +39,11 @@ class UserResponse(BaseModel):
     email: str
     nickname: str
     profile_pic: Optional[str]
+    birthdate: datetime
+    user_type: UserType
     model_config = ConfigDict(from_attributes=True)
+
+class UserUpdate(BaseModel):
+    nickname: Optional[str] = None
+    birthdate: Optional[datetime] = None
+    user_type: Optional[UserType] = None

@@ -1,6 +1,9 @@
 from pydantic import BaseModel, ConfigDict
 from typing import Dict, List, Optional
 
+from domain.typeEnum import UserType
+
+
 class Offset(BaseModel):
     x: float
     y: float
@@ -13,6 +16,7 @@ class ResultCreate(BaseModel):
     cell_images: Dict[str, List[str]]  # Base64 이미지 문자열 리스트
     detailed_strokecounts: Dict[str, List[int]] # 각 글자자에 대한 세부 획수
     firstandlast_stroke: Dict[str, List[Offset]] # 각 획에 대한 첫 번째와 마지막 획의 좌표
+    user_type: UserType
 
 # Result 응답용 DTO - 글자별 상세 결과
 class CharacterResult(BaseModel):

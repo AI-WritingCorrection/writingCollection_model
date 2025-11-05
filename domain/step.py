@@ -13,5 +13,6 @@ class Step(Base):
     step_character = Column(String(100), nullable=False)
     step_text = Column(String(500), nullable=False)
     step_time = Column(Integer, nullable=True, default=120)
-    step_tip = Column(String(500), nullable=True)
+    step_tip = Column(String(500), nullable=True, server_default="천천히 왼쪽, 오른쪽, 위, 아래 간격을 맞추면서 적어봐요")
     mission_records = relationship("MissionRecord", back_populates="step", cascade="all, delete-orphan")    
+    

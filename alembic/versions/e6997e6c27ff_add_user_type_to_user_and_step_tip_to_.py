@@ -31,7 +31,8 @@ def upgrade() -> None:
         INSERT INTO steps (step_mission, step_type, step_character, step_text, step_time, step_tip)
         VALUES 
             ('밑의 단어를 정확히 써보자', 'WORD', 'assets/character/rabbitTeacher.png', '비행기', 120, '받침 있는 글자에 주의해서 천천히 써보아요'),
-            ('밑의 단어를 정확히 써보자', 'WORD', 'assets/character/rabbitTeacher.png', '아름다움', 120, 'ㄹ에 주의해서 천천히 써보아요');
+            ('밑의 단어를 정확히 써보자', 'WORD', 'assets/character/rabbitTeacher.png', '아름다움', 120, 'ㄹ에 주의해서 천천히 써보아요')
+        ON CONFLICT (step_id) DO NOTHING;
     """)
     # ### end Alembic commands ###
 

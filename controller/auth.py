@@ -63,6 +63,7 @@ def login(payload: TokenPayload, db: Session = Depends(get_db)):
         nickname=user.nickname,
         birthdate=user.birthdate,
         profile_pic=user.profile_pic,
+        user_type=user.user_type,
         jwt=new_jwt
     )
 

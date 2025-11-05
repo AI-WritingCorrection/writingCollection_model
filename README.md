@@ -63,4 +63,4 @@ INFO: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 ### 9. Database 스키마 변경시
 ```alembic revision --autogenerate -m "커밋 내용"```
 한뒤, alembic/versions에 생성된 로그파일을 확인하고, 문제 없을시
-```albemic upgrade head```하면 데이터베이스에 변경점이 업데이트됩니다.
+```alembic upgrade head```하면 데이터베이스에 변경점이 업데이트됩니다.

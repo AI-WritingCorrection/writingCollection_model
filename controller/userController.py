@@ -4,9 +4,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from database import get_db
 from domain.user import User
 from dto.statsDTO import StatsResponse
-from dto.userDTO import UserResponse
+from dto.userDTO import UserResponse, UserUpdate
 from service.statsService import get_user_statistics
-from service.userService import get_user_by_id, update_profile_pic
+from service.userService import get_user_by_id, update_profile_pic, update_user
 
 import os
 from uuid import uuid4
@@ -53,6 +53,25 @@ def get_user_stats(user_id: int, db: Session = Depends(get_db)):
     
     statistics_data = get_user_statistics(db=db, user_id=user_id)
     return statistics_data
+
+# 사용자 프로필 정보를 업데이트 하는 함수
+@router.post("/updateProfile/{user_id}", response_model=UserResponse)
+def update_user_profile(user_id: int, user_data: UserUpdate, db: Session = Depends(get_db)):
+    # 사용자 존재 여부 확인
+    user = get_user_by_id(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Pydantic 모델을 dict로 변환하되, 명시적으로 설정된 값만 포함
+    update_data = user_data.model_dump(exclude_unset=True)
+
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
+
+    # 프로필 정보 업데이트
+    updated_user = update_user(db=db, user_id=user_id, **update_data)
+    
+    return updated_user
 
 # 프로필 사진을 업데이트 하는 함수
 @router.post("/uploadProfileImage/{user_id}")

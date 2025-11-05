@@ -11,3 +11,8 @@ class AuthProvider(str, enum.Enum):
     KAKAO = "KAKAO"
     NAVER = "NAVER"
     APPLE = "APPLE"
+
+class UserType(str, enum.Enum):
+    CHILD = "CHILD"
+    ADULT = "ADULT"
+    FOREIGN = "FOREIGN"

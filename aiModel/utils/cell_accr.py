@@ -9,6 +9,10 @@ from .decompose import char_decompose
 from .image_utils import prepare_images_for_check
 from .Rules import CHAR_TYPE_RULES
 
+from .feedback import ERROR_FEEDBACK_4TH_CHILD as FEEDBACK_CHILD
+from .feedback import ERROR_FEEDBACK_4TH_ADULT as FEEDBACK_ADULT
+from .feedback import ERROR_FEEDBACK_4TH_FOREIGN as FEEDBACK_FOREIGN
+
 """
 
 # 글자의 구도 종류 고르는 함수. 가-0 갈-1 두-2 둡-3
@@ -19,8 +23,8 @@ def get_char_type(y):
     return type
 """
 
-def get_char_acc(images, phoneme_img_list, stroke_points, practice_syllabus):
-    return get_char_acc_integrated(images, phoneme_img_list, stroke_points, practice_syllabus) #최종 통합 버전 사용
+def get_char_acc(images, phoneme_img_list, stroke_points, practice_syllabus, user_type):
+    return get_char_acc_integrated(images, phoneme_img_list, stroke_points, practice_syllabus, user_type) #최종 통합 버전 사용
 
 #4차 스테이지 : 디테일 평가 (구버전)
 def get_char_acc_old(images, phoneme_img_list, stroke_points, practice_syllabus):
@@ -212,7 +216,7 @@ def get_char_acc_old(images, phoneme_img_list, stroke_points, practice_syllabus)
                 
 
 #4차 스테이지 : 음절 디테일 평가 (신버전) || 현재 사용중
-def get_char_acc_final(img_tot, images, stroke_counts, practice_syllabus):
+def get_char_acc_final(img_tot, images, stroke_counts, practice_syllabus, user_type):
 
     """
     글자의 디테일 요소 (크기 밸런스, 자모 거리, 기울기 등) 평가 (4차 필터)
@@ -222,6 +226,7 @@ def get_char_acc_final(img_tot, images, stroke_counts, practice_syllabus):
         images : 자모 이미지
         stroke_counts (list): 획 개수 리스트 (자모 분리용 기준)
         practice_syllabus (str): 기준 글자
+        user_type (str): 유저의 나이 정보
     
     Returns:
         tuple(bool, str or None, str or None):
@@ -241,7 +246,7 @@ def get_char_acc_final(img_tot, images, stroke_counts, practice_syllabus):
         4: (0.25411, 1.0),                          # 받침X, 복합모음 (과)
         5: (0.23271, 0.71650, 0.19951)              # 받침O, 복합모음 (곽)
     }
-    
+
     # --- 내부 헬퍼 함수: 면적 계산 ---
     def _calculate_area(pil_image):
         bw_image = pil_image.convert("L")
@@ -325,7 +330,7 @@ def get_char_acc_final(img_tot, images, stroke_counts, practice_syllabus):
     
 
     # 최종 통합 버전:
-def get_char_acc_integrated(img_tot, images, stroke_counts, practice_syllabus):
+def get_char_acc_integrated(img_tot, images, stroke_counts, practice_syllabus, user_type):
     """
     글자의 디테일 요소 (자모별 크기, 가로세로 비율)를 종합적으로 평가 (최종 필터)
 
@@ -345,7 +350,19 @@ def get_char_acc_integrated(img_tot, images, stroke_counts, practice_syllabus):
     # --- 설정: 허용 오차 범위와 규칙을 적용 ---
     TOLERANCE_UPPER = 1.5
     TOLERANCE_LOWER = 0.5
+
+    # 유저 타입 설정
+    FEEDBACK_STR = None
     
+    if user_type == "CHILD":
+        FEEDBACK_STR = FEEDBACK_CHILD
+    elif user_type == "ADULT":
+        FEEDBACK_STR = FEEDBACK_ADULT
+    elif user_type == "FOREIGN":
+        FEEDBACK_STR = FEEDBACK_FOREIGN
+    else:
+        FEEDBACK_STR = FEEDBACK_FOREIGN
+        
     # 규칙: (자모 크기 비율, 자모 가로세로 비율)을 튜플로 묶어서 관리
     RATIO_RULES = {
         # 받침 O (초성, 중성, 종성)
@@ -432,7 +449,7 @@ def get_char_acc_integrated(img_tot, images, stroke_counts, practice_syllabus):
     if ans_ratios_set is None:
         return False, f"'{practice_syllabus}' 글자 (타입 {char_type})에 대한 규칙을 찾을 수 없어요.", None
 
-    component_names, errors = ["초성", "중성", "종성"], []
+    component_names, errors = [FEEDBACK_STR['FIRST_CELL'], FEEDBACK_STR['SECOND_CELL'], FEEDBACK_STR['THIRD_CELL']], []
     for i, metrics in enumerate(cell_metrics):
         if i >= len(ans_ratios_set): continue
         
@@ -444,16 +461,18 @@ def get_char_acc_integrated(img_tot, images, stroke_counts, practice_syllabus):
 
         # 크기 검사 (상위 검사)
         if current_size_ratio > ans_size_ratio * TOLERANCE_UPPER:
-            errors.append(f"{name}의 크기가 너무 커요...")
+            errors.append(f"{name}" + FEEDBACK_STR['TOO_BIG'])
             # 가로세로 비율 검사 (하위 검사)
-            if aspect_ratio > ans_aspect_ratio * TOLERANCE_UPPER: errors.append(f"    ㄴ 가로로 너무 길어요...")
-            elif aspect_ratio < ans_aspect_ratio * TOLERANCE_LOWER: errors.append(f"    ㄴ 세로로 너무 길어요...")
+            if aspect_ratio > ans_aspect_ratio * TOLERANCE_UPPER: errors.append(FEEDBACK_STR['TOO_BIG_HORIZONTAL'])
+            elif aspect_ratio < ans_aspect_ratio * TOLERANCE_LOWER: errors.append(FEEDBACK_STR['TOO_BIG_VERTICAL'])
+            else: errors.append(FEEDBACK_STR['TOO_BIG_NORMAL'])
         
         elif current_size_ratio < ans_size_ratio * TOLERANCE_LOWER:
-            errors.append(f"{name}의 크기가 너무 작아요...")
+            errors.append(f"{name}" + FEEDBACK_STR['TOO_SMALL'])
             # 가로세로 비율 검사 (하위 검사) 
-            if aspect_ratio > ans_aspect_ratio * TOLERANCE_UPPER: errors.append(f"    ㄴ 세로로 너무 짧아요...")
-            elif aspect_ratio < ans_aspect_ratio * TOLERANCE_LOWER: errors.append(f"    ㄴ 가로로 너무 짧아요...")
+            if aspect_ratio > ans_aspect_ratio * TOLERANCE_UPPER: errors.append(FEEDBACK_STR['TOO_SMALL_VERTICAL'])
+            elif aspect_ratio < ans_aspect_ratio * TOLERANCE_LOWER: errors.append(FEEDBACK_STR['TOO_SMALL_HORIZONTAL'])
+            else: errors.append(FEEDBACK_STR['TOO_SMALL_NORMAL'])
 
     # --- 5. 최종 결과 반환 ---
     # 디버그 정보 생성

@@ -180,7 +180,6 @@ STROKE_DIRECTION_RULES = {
 
 
 
-import unicodedata
 
 # 한글 자모 테이블
 CHOSUNG_LIST =  ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ',
@@ -205,6 +204,10 @@ def decompose_hangul(syllable):
 
 
 def check_stroke_directions(practice_syllable, stroke_points):
+    return check_stroke_directions_new(practice_syllable, stroke_points)
+
+
+def check_stroke_directions_old(practice_syllable, stroke_points):
     """
       획의 방향과 순서가 올바른지 판단 (3차 필터)
 
@@ -242,6 +245,122 @@ def check_stroke_directions(practice_syllable, stroke_points):
                 return False, f"{i+1}번째 획의 Y방향이 {direction['DELTA_Y']}이어야 하는데 그렇지 않아요...", None
 
     return True, None, None
+
+
+def check_stroke_directions_new(practice_syllable, stroke_points):
+    """
+     획의 방향과 순서가 올바른지 판단 (3차 필터) - [NEW: v4. 위치 정렬]
+     [수정됨: 틀린 자모 리스트를 초/중/종성 순서로 정렬]
+
+     Parameters:
+         practice_syllable (str): 기준 글자 (예: '가', '밈')
+         stroke_points (list[dict]): 획별 시작/끝 좌표
+     Returns:
+         tuple(bool, str or None): is_passed, reason, stage3_debug_state
+             - bool: 필터 통과 여부
+             - str: 실패 이유 (통과 시 None)
+             - str: 디버그용 내부 상태 (현재 None)
+    
+    """
+    phonemes = decompose_hangul(practice_syllable)
+
+    if not isinstance(phonemes, tuple):
+        return True, None, None
+
+    phonemes_list = list(phonemes)
+    expected_directions = []
+
+    # 1. Chosung (초성)
+    if phonemes_list[0]: 
+        rules = STROKE_DIRECTION_RULES.get(phonemes_list[0], {})
+        for i in range(1, len(rules) + 1):
+            expected_directions.append((phonemes_list[0], '(시작)', rules[i]))
+
+    # 2. Jungsung (중성)
+    if phonemes_list[1]: 
+        rules = STROKE_DIRECTION_RULES.get(phonemes_list[1], {})
+        for i in range(1, len(rules) + 1):
+            expected_directions.append((phonemes_list[1], '', rules[i]))
+
+    # 3. Jongsung (종성)
+    if phonemes_list[2]:
+        rules = STROKE_DIRECTION_RULES.get(phonemes_list[2], {})
+        for i in range(1, len(rules) + 1):
+            expected_directions.append((phonemes_list[2], '(받침)', rules[i]))
+
+    # --- 오류 수집을 위한 자료구조 변경 ---
+    failed_parts = set()                # 예: {'ㄱ(시작)', 'ㄹ(받침)'}
+    # (NEW) set 대신 dict를 사용해 위치(1,2,3)별로 자모를 저장
+    failed_phonemes_by_position = {}  # 예: {1: 'ㄱ', 3: 'ㄹ'}
+    # ------------------------------------
+
+    # --- 검사 루프 (즉시 반환 대신 오류 누적) ---
+    for i, (phoneme, phoneme_type, direction) in enumerate(expected_directions):
+        start = stroke_points[i * 2]
+        end = stroke_points[i * 2 + 1]
+        sx, sy = _xy(start)
+        ex, ey = _xy(end)
+        dx, dy = ex - sx, ey - sy
+
+        fail = False
+        if direction["DELTA_X"] in ["+", "-"]:
+            if (direction["DELTA_X"] == "+" and dx <= 0) or (direction["DELTA_X"] == "-" and dx >= 0):
+                fail = True
+
+        if not fail and direction["DELTA_Y"] in ["+", "-"]:
+            if (direction["DELTA_Y"] == "+" and dy <= 0) or (direction["DELTA_Y"] == "-" and dy >= 0):
+                fail = True
+        
+        if fail:
+            phoneme_part_str = f"{phoneme}{phoneme_type}"
+            failed_parts.add(phoneme_part_str)
+            
+            # (NEW) phoneme_type을 기준으로 위치(1,2,3)를 정해서 dict에 저장
+            if phoneme_type == '(시작)':
+                failed_phonemes_by_position[1] = phoneme
+            elif phoneme_type == '': # Jungsung
+                failed_phonemes_by_position[2] = phoneme
+            elif phoneme_type == '(받침)':
+                failed_phonemes_by_position[3] = phoneme
+    # ---------------------------------------------
+
+    # --- 루프 종료 후, 수집된 오류를 바탕으로 최종 반환 ---
+    if failed_parts:
+        # 1. 'ㄱ(시작)' 등 failed_parts 정렬 (이건 가나다순이어도 OK)
+        failed_parts_str = ", ".join([f"'{part}'" for part in sorted(list(failed_parts))])
+        
+        # 2. (NEW) failed_phonemes_by_position 딕셔너리를 초/중/종성 순서(1,2,3)로 조립
+        sorted_failed_phonemes = []
+        if 1 in failed_phonemes_by_position: # 1: 초성
+            sorted_failed_phonemes.append(f"'{failed_phonemes_by_position[1]}'")
+        if 2 in failed_phonemes_by_position: # 2: 중성
+            sorted_failed_phonemes.append(f"'{failed_phonemes_by_position[2]}'")
+        if 3 in failed_phonemes_by_position: # 3: 종성
+            sorted_failed_phonemes.append(f"'{failed_phonemes_by_position[3]}'")
+
+        failed_base_str = ", ".join(sorted_failed_phonemes)
+        
+        # (NEW) 요청한 형식의 최종 오류 메시지
+        reason = f"{failed_parts_str} 의 쓰는 순서가 틀렸어요. {failed_base_str} 쓰는 순서를 다시 연습해보세요"
+        return False, reason, None
+
+    # set에 아무것도 없으면 (실패한 획이 없으면) 성공 반환
+    return True, None, None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

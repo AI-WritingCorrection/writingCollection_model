@@ -9,6 +9,10 @@ from .decompose import char_decompose
 from .image_utils import prepare_images_for_check
 from .Rules import CHAR_TYPE_RULES
 
+from .feedback import ERROR_FEEDBACK_4TH_CHILD as FEEDBACK_CHILD
+from .feedback import ERROR_FEEDBACK_4TH_ADULT as FEEDBACK_ADULT
+from .feedback import ERROR_FEEDBACK_4TH_FOREIGN as FEEDBACK_FOREIGN
+
 """
 
 # 글자의 구도 종류 고르는 함수. 가-0 갈-1 두-2 둡-3
@@ -19,200 +23,12 @@ def get_char_type(y):
     return type
 """
 
-def get_char_acc(images, phoneme_img_list, stroke_points, practice_syllabus):
-    return get_char_acc_integrated(images, phoneme_img_list, stroke_points, practice_syllabus) #최종 통합 버전 사용
-
-#4차 스테이지 : 디테일 평가 (구버전)
-def get_char_acc_old(images, phoneme_img_list, stroke_points, practice_syllabus):
-    #char_type = get_char_type(char_info)
-
-    char_type = -1
-    
-    char_decom = char_decompose(practice_syllabus)
-
-    if char_decom[0][2] == ' ':
-        if CHAR_TYPE_RULES[char_decom[0][1]] == 0:
-            char_type = 0
-        elif CHAR_TYPE_RULES[char_decom[0][1]] == 2:
-            char_type = 2
-        else:
-            char_type = 4
-    else:
-        if CHAR_TYPE_RULES[char_decom[0][1]] == 0:
-            char_type = 1
-        elif CHAR_TYPE_RULES[char_decom[0][1]] == 2:
-            char_type = 3
-        else:
-            char_type = 5
-
-    if char_type == 1 or char_type == 3 or char_type == 5:
-        
-        char = np.array(images[0])
-        Cell_1 = np.array(images[1])
-        Cell_2 = np.array(images[2])
-        Cell_3 = np.array(images[3])
-
-        #img = cv2.imread(img_full)
-        #img_1 = cv2.imread(img_cell_1)
-        #img_2 = cv2.imread(img_cell_2)
-        #img_3 = cv2.imread(img_cell_3)
-
-        char_coord = get_bbox_smallchar(char)
-        Cell_1_coord = get_bbox_smallchar(Cell_1)
-        Cell_2_coord = get_bbox_smallchar(Cell_2)
-        Cell_3_coord = get_bbox_smallchar(Cell_3)
-        
-
-        char_size = (char_coord[1][0] - char_coord[0][0]) * (char_coord[2][1] - char_coord[0][1])
-
-        errormsg = ""
-
-        if char_size == 0:
-            errormsg = errormsg+ ("글씨가 너무 작아 알아볼 수 없어요...\n")
-            return False, errormsg, None
-        
-        Cell_1_size = (Cell_1_coord[1][0] - Cell_1_coord[0][0]) * (Cell_1_coord[2][1] - Cell_1_coord[0][1])
-        Cell_2_size = (Cell_2_coord[1][0] - Cell_2_coord[0][0]) * (Cell_2_coord[2][1] - Cell_2_coord[0][1])
-        Cell_3_size = (Cell_3_coord[1][0] - Cell_3_coord[0][0]) * (Cell_3_coord[2][1] - Cell_3_coord[0][1])
-
-        if char_type == 1:
-            #   사이즈에 대한 오류를 에러 코드로 표시한 후, return하고 한 번에 출력하는 것은 어떤가?
-            Cell_ratio_1_ans = 0.19369323922834714
-            Cell_ratio_2_ans = 0.2088962039269306
-            Cell_ratio_3_ans = 0.23924792306962553
-
-            if Cell_1_size / char_size > Cell_ratio_1_ans * 1.4:
-                errormsg = errormsg + ("초성의 크기가 너무 커요...\n")
-            elif Cell_1_size / char_size < Cell_ratio_1_ans * 0.6:
-                errormsg = errormsg + ("초성의 크기가 너무 작아요...\n")
-
-            if Cell_2_size / char_size > Cell_ratio_2_ans * 1.4:
-                errormsg = errormsg + ("중성의 크기가 너무 커요...\n")
-            elif Cell_2_size / char_size < Cell_ratio_2_ans * 0.6:
-                errormsg = errormsg + ("중성의 크기가 너무 작아요...\n")
-
-            if Cell_3_size / char_size > Cell_ratio_3_ans * 1.4:
-                errormsg = errormsg + ("종성의 크기가 너무 커요...\n")
-            elif Cell_3_size / char_size < Cell_ratio_3_ans * 0.6:
-                errormsg = errormsg + ("종성의 크기가 너무 작아요...\n")
-                
-        elif char_type == 3:
-            
-            Cell_ratio_1_ans = 0.2160306845003934
-            Cell_ratio_2_ans = 0.22580645161290322
-            Cell_ratio_3_ans = 0.23797736488531138
-
-            if Cell_1_size / char_size > Cell_ratio_1_ans * 1.4:
-                errormsg = errormsg + ("초성의 크기가 너무 커요...\n")
-            elif Cell_1_size / char_size < Cell_ratio_1_ans * 0.6:
-                errormsg = errormsg + ("초성의 크기가 너무 작아요...\n")
-
-            if Cell_2_size / char_size > Cell_ratio_2_ans * 1.4:
-                errormsg = errormsg + ("중성의 크기가 너무 커요...\n")
-            elif Cell_2_size / char_size < Cell_ratio_2_ans * 0.6:
-                errormsg = errormsg + ("중성의 크기가 너무 작아요...\n")
-
-            if Cell_3_size / char_size > Cell_ratio_3_ans * 1.4:
-                errormsg = errormsg + ("종성의 크기가 너무 커요...\n")
-            elif Cell_3_size / char_size < Cell_ratio_3_ans * 0.6:
-                errormsg = errormsg + ("종성의 크기가 너무 작아요...\n")
-
-        elif char_type == 5:
-            
-            Cell_ratio_1_ans = 0.2327110698845472
-            Cell_ratio_2_ans = 0.7165095824153981
-            Cell_ratio_3_ans = 0.19951632406287786
-
-            if Cell_1_size / char_size > Cell_ratio_1_ans * 1.4:
-                errormsg = errormsg + ("초성의 크기가 너무 커요...\n")
-            elif Cell_1_size / char_size < Cell_ratio_1_ans * 0.6:
-                errormsg = errormsg + ("초성의 크기가 너무 작아요...\n")
-
-            if Cell_2_size / char_size > Cell_ratio_2_ans * 1.4:
-                errormsg = errormsg + ("중성의 크기가 너무 커요...\n")
-            elif Cell_2_size / char_size < Cell_ratio_2_ans * 0.6:
-                errormsg = errormsg + ("중성의 크기가 너무 작아요...\n")
-
-            if Cell_3_size / char_size > Cell_ratio_3_ans * 1.4:
-                errormsg = errormsg + ("종성의 크기가 너무 커요...\n")
-            elif Cell_3_size / char_size < Cell_ratio_3_ans * 0.6:
-                errormsg = errormsg + ("종성의 크기가 너무 작아요...\n")
-            
-        
-    else:
-        char = np.array(images[0])
-        Cell_1 = np.array(images[1])
-        Cell_2 = np.array(images[2])
-
-        char_coord = get_bbox_smallchar(char)
-        Cell_1_coord = get_bbox_smallchar(Cell_1)
-        Cell_2_coord = get_bbox_smallchar(Cell_2)
-
-
-        char_size = (char_coord[1][0] - char_coord[0][0]) * (char_coord[2][1] - char_coord[0][1])
-        errormsg = ""
-
-        if char_size == 0:
-            errormsg = errormsg+ ("글씨가 너무 작아 알아볼 수 없어요...\n")
-            return False, errormsg, None
-        Cell_1_size = (Cell_1_coord[1][0] - Cell_1_coord[0][0]) * (Cell_1_coord[2][1] - Cell_1_coord[0][1])
-        Cell_2_size = (Cell_2_coord[1][0] - Cell_2_coord[0][0]) * (Cell_2_coord[2][1] - Cell_2_coord[0][1])
-
-        
-        if char_type == 0:
-
-            Cell_ratio_1_ans = 0.29048645096380044
-            Cell_ratio_2_ans = 0.3886838868388684
-
-            if Cell_1_size / char_size > Cell_ratio_1_ans * 1.4:
-                errormsg = errormsg + ("초성의 크기가 너무 커요...\n")
-            elif Cell_1_size / char_size < Cell_ratio_1_ans * 0.6:
-                errormsg = errormsg + ("초성의 크기가 너무 작아요...\n")
-
-            if Cell_2_size / char_size > Cell_ratio_2_ans * 1.4:
-                errormsg = errormsg + ("중성의 크기가 너무 커요...\n")
-            elif Cell_2_size / char_size < Cell_ratio_2_ans * 0.6:
-                errormsg = errormsg + ("중성의 크기가 너무 작아요...\n")
-
-        elif char_type == 2:
-            
-            Cell_ratio_1_ans = 0.3032908672759184
-            Cell_ratio_2_ans = 0.45161290322580644
-
-            if Cell_1_size / char_size > Cell_ratio_1_ans * 1.4:
-                errormsg = errormsg + ("초성의 크기가 너무 커요...\n")
-            elif Cell_1_size / char_size < Cell_ratio_1_ans * 0.6:
-                errormsg = errormsg + ("초성의 크기가 너무 작아요...\n")
-
-            if Cell_2_size / char_size > Cell_ratio_2_ans * 1.4:
-                errormsg = errormsg + ("중성의 크기가 너무 커요...\n")
-            elif Cell_2_size / char_size < Cell_ratio_2_ans * 0.6:
-                errormsg = errormsg + ("중성의 크기가 너무 작아요...\n")
-
-        elif char_type == 4:
-
-            Cell_ratio_1_ans = 0.25411096466453276
-            Cell_ratio_2_ans = 1.0
-            
-            if Cell_1_size / char_size > Cell_ratio_1_ans * 1.4:
-                errormsg = errormsg + ("초성의 크기가 너무 커요...\n")
-            elif Cell_1_size / char_size < Cell_ratio_1_ans * 0.6:
-                errormsg = errormsg + ("초성의 크기가 너무 작아요...\n")
-
-            if Cell_2_size / char_size > Cell_ratio_2_ans * 1.4:
-                errormsg = errormsg + ("중성의 크기가 너무 커요...\n")
-            elif Cell_2_size / char_size < Cell_ratio_2_ans * 0.6:
-                errormsg = errormsg + ("중성의 크기가 너무 작아요...\n")
-
-                
-    if errormsg == "":
-        return True, None, None
-    else:
-        return False, errormsg, None
+def get_char_acc(images, phoneme_img_list, stroke_points, practice_syllabus, user_type):
+    return get_char_acc_integrated(images, phoneme_img_list, stroke_points, practice_syllabus, user_type) #최종 통합 버전 사용
                 
 
 #4차 스테이지 : 음절 디테일 평가 (신버전) || 현재 사용중
-def get_char_acc_final(img_tot, images, stroke_counts, practice_syllabus):
+def get_char_acc_final(img_tot, images, stroke_counts, practice_syllabus, user_type):
 
     """
     글자의 디테일 요소 (크기 밸런스, 자모 거리, 기울기 등) 평가 (4차 필터)
@@ -222,6 +38,7 @@ def get_char_acc_final(img_tot, images, stroke_counts, practice_syllabus):
         images : 자모 이미지
         stroke_counts (list): 획 개수 리스트 (자모 분리용 기준)
         practice_syllabus (str): 기준 글자
+        user_type (str): 유저의 나이 정보
     
     Returns:
         tuple(bool, str or None, str or None):
@@ -241,7 +58,7 @@ def get_char_acc_final(img_tot, images, stroke_counts, practice_syllabus):
         4: (0.25411, 1.0),                          # 받침X, 복합모음 (과)
         5: (0.23271, 0.71650, 0.19951)              # 받침O, 복합모음 (곽)
     }
-    
+
     # --- 내부 헬퍼 함수: 면적 계산 ---
     def _calculate_area(pil_image):
         bw_image = pil_image.convert("L")
@@ -325,7 +142,7 @@ def get_char_acc_final(img_tot, images, stroke_counts, practice_syllabus):
     
 
     # 최종 통합 버전:
-def get_char_acc_integrated(img_tot, images, stroke_counts, practice_syllabus):
+def get_char_acc_integrated(img_tot, images, stroke_counts, practice_syllabus, user_type):
     """
     글자의 디테일 요소 (자모별 크기, 가로세로 비율)를 종합적으로 평가 (최종 필터)
 
@@ -345,7 +162,19 @@ def get_char_acc_integrated(img_tot, images, stroke_counts, practice_syllabus):
     # --- 설정: 허용 오차 범위와 규칙을 적용 ---
     TOLERANCE_UPPER = 1.5
     TOLERANCE_LOWER = 0.5
+
+    # 유저 타입 설정
+    FEEDBACK_STR = None
     
+    if user_type == "CHILD":
+        FEEDBACK_STR = FEEDBACK_CHILD
+    elif user_type == "ADULT":
+        FEEDBACK_STR = FEEDBACK_ADULT
+    elif user_type == "FOREIGN":
+        FEEDBACK_STR = FEEDBACK_FOREIGN
+    else:
+        FEEDBACK_STR = FEEDBACK_FOREIGN
+        
     # 규칙: (자모 크기 비율, 자모 가로세로 비율)을 튜플로 묶어서 관리
     RATIO_RULES = {
         # 받침 O (초성, 중성, 종성)
@@ -432,7 +261,7 @@ def get_char_acc_integrated(img_tot, images, stroke_counts, practice_syllabus):
     if ans_ratios_set is None:
         return False, f"'{practice_syllabus}' 글자 (타입 {char_type})에 대한 규칙을 찾을 수 없어요.", None
 
-    component_names, errors = ["초성", "중성", "종성"], []
+    component_names, errors = [FEEDBACK_STR['FIRST_CELL'], FEEDBACK_STR['SECOND_CELL'], FEEDBACK_STR['THIRD_CELL']], []
     for i, metrics in enumerate(cell_metrics):
         if i >= len(ans_ratios_set): continue
         
@@ -444,16 +273,18 @@ def get_char_acc_integrated(img_tot, images, stroke_counts, practice_syllabus):
 
         # 크기 검사 (상위 검사)
         if current_size_ratio > ans_size_ratio * TOLERANCE_UPPER:
-            errors.append(f"{name}의 크기가 너무 커요...")
+            errors.append(f"{name}" + FEEDBACK_STR['TOO_BIG'])
             # 가로세로 비율 검사 (하위 검사)
-            if aspect_ratio > ans_aspect_ratio * TOLERANCE_UPPER: errors.append(f"    ㄴ 가로로 너무 길어요...")
-            elif aspect_ratio < ans_aspect_ratio * TOLERANCE_LOWER: errors.append(f"    ㄴ 세로로 너무 길어요...")
+            if aspect_ratio > ans_aspect_ratio * TOLERANCE_UPPER: errors.append(FEEDBACK_STR['TOO_BIG_HORIZONTAL'])
+            elif aspect_ratio < ans_aspect_ratio * TOLERANCE_LOWER: errors.append(FEEDBACK_STR['TOO_BIG_VERTICAL'])
+            else: errors.append(FEEDBACK_STR['TOO_BIG_NORMAL'])
         
         elif current_size_ratio < ans_size_ratio * TOLERANCE_LOWER:
-            errors.append(f"{name}의 크기가 너무 작아요...")
+            errors.append(f"{name}" + FEEDBACK_STR['TOO_SMALL'])
             # 가로세로 비율 검사 (하위 검사) 
-            if aspect_ratio > ans_aspect_ratio * TOLERANCE_UPPER: errors.append(f"    ㄴ 세로로 너무 짧아요...")
-            elif aspect_ratio < ans_aspect_ratio * TOLERANCE_LOWER: errors.append(f"    ㄴ 가로로 너무 짧아요...")
+            if aspect_ratio > ans_aspect_ratio * TOLERANCE_UPPER: errors.append(FEEDBACK_STR['TOO_SMALL_VERTICAL'])
+            elif aspect_ratio < ans_aspect_ratio * TOLERANCE_LOWER: errors.append(FEEDBACK_STR['TOO_SMALL_HORIZONTAL'])
+            else: errors.append(FEEDBACK_STR['TOO_SMALL_NORMAL'])
 
     # --- 5. 최종 결과 반환 ---
     # 디버그 정보 생성

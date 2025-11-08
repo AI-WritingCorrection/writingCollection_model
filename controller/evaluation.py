@@ -50,7 +50,7 @@ async def evaluate_handwriting(payload: ResultCreate,  db: Session = Depends(get
         stroke_counts = payload.detailed_strokecounts.get(cell_id)
         stroke_points = payload.firstandlast_stroke.get(cell_id)
         practice_syllabus = payload.practice_text[int(cell_id)]
-
+        user_type = payload.user_type.get(cell_id)
 
         # 1. 이미지 디코딩
         images = decode_base64_image_list(cell_images)
@@ -85,6 +85,7 @@ async def evaluate_handwriting(payload: ResultCreate,  db: Session = Depends(get
         if not passed_ocr: recognized_texts = "인식실패 => " + recognized_text #1차 스테이지 실패 처리
 
         # 5. 평가 함수 호출
+        score_result = evaluate_character(passed_ocr, images, stroke_counts, stroke_points, practice_syllabus, user_type)
 
         results.append({
             "original_text": practice_syllabus,

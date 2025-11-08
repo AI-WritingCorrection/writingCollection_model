@@ -4,7 +4,7 @@ from .char_accr import check_char_size
 from .stroke_utils import check_stroke_directions
 from .cell_accr import get_char_acc
 
-def evaluate_character(passed_ocr, images, stroke_counts, stroke_points, practice_syllabus):
+def evaluate_character(passed_ocr, images, stroke_counts, stroke_points, practice_syllabus, user_type):
     """
     글자 하나에 대한 평가 함수: 2차 (크기), 3차 (획 순서), 4차 (디테일)를 순차적으로 통과시킴 | 1차는 ocr 통과로 간주
 
@@ -14,6 +14,7 @@ def evaluate_character(passed_ocr, images, stroke_counts, stroke_points, practic
         stroke_counts (list[int]): 획 수 정보
         stroke_points (list[dict]): 획의 시작점/끝점 좌표 정보
         practice_syllabus (str): 기준 글자
+        user_type (str): 피드백 문장 타입 선정을 위한 유저 정보
 
     Returns:
         dict: 평가 결과
@@ -70,7 +71,7 @@ def evaluate_character(passed_ocr, images, stroke_counts, stroke_points, practic
 
 
     # 4차 필터: 디테일 평가
-    passed, reason, stage4_debug_state = check_detail_features(img_tot, images, stroke_counts, practice_syllabus)
+    passed, reason, stage4_debug_state = check_detail_features(img_tot, images, stroke_counts, practice_syllabus, user_type)
     if not passed:
         error_stage += "1"
         error_reason[3] = reason
@@ -131,7 +132,7 @@ def check_stroke_order(stroke_points, practice_syllabus):
 
 
 # 4차 필터: 디테일 평가
-def check_detail_features(img_tot, images, stroke_counts, practice_syllabus):
+def check_detail_features(img_tot, images, stroke_counts, practice_syllabus, user_type):
     """
     글자의 디테일 요소 (크기 밸런스, 자모 거리, 기울기 등) 평가 (4차 필터)
 
@@ -140,6 +141,7 @@ def check_detail_features(img_tot, images, stroke_counts, practice_syllabus):
         phoneme_img_list (list[bytes]): 초성/중성/종성 병합 이미지 바이트 리스트
         stroke_points (list[dict]): 획 좌표 정보 (자모 분리용 기준)
         practice_syllabus (str): 기준 글자
+        user_type: 유저의 나이 정보
 
     Returns:
         tuple(bool, str or None):
@@ -147,7 +149,7 @@ def check_detail_features(img_tot, images, stroke_counts, practice_syllabus):
             - str: 실패 이유 (통과 시 None)
     """
 
-    is_passed, reason, stage4_debug_state = get_char_acc(img_tot, images, stroke_counts, practice_syllabus)
+    is_passed, reason, stage4_debug_state = get_char_acc(img_tot, images, stroke_counts, practice_syllabus, user_type)
 
 
     return is_passed, reason, stage4_debug_state

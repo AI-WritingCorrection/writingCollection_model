@@ -4,14 +4,17 @@ from PIL import Image
 
 
 from .bboxtest import get_bbox_smallchar
+from .feedback import ERROR_FEEDBACK_2ND_CHILD as FEEDBACK_CHILD
+from .feedback import ERROR_FEEDBACK_2ND_ADULT as FEEDBACK_ADULT
+from .feedback import ERROR_FEEDBACK_2ND_FOREIGN as FEEDBACK_FOREIGN
 
 # 2차 스테이지: 크기 및 비율 검사
 
-def check_char_size(img_tot, version = "new"):
+def check_char_size(img_tot, user_type, version = "new"):
     if version == "old":
         return check_char_size_old(img_tot)
     else:
-        return check_char_size_new(img_tot)
+        return check_char_size_new(img_tot, user_type)
 
 
 #old version : 방식 - 경계선 스캔을 통해 글자 크기 비율 판단 [경계선 스캔 방식]
@@ -46,7 +49,7 @@ def check_char_size_old(images):
 
 #new version : 방식 - numpy로 글자 영역 탐색 후 크기 비율 판단 [그림자 찾기 방식]
 #2차 스테이지 보완
-def check_char_size_new(img_tot):
+def check_char_size_new(img_tot, user_type):
     """
     PNG 바이트 이미지를 받아 내부 글씨의 크기 비율을 검사한다.
     NumPy를 사용해 효율적으로 글씨 영역(bounding box)을 찾는다.
@@ -63,7 +66,18 @@ def check_char_size_new(img_tot):
     MAX_HEIGHT_RATIO = 0.85
     MIN_HEIGHT_RATIO = 0.5
     
-
+    # --- 설정: 유저 타입에 따른 피드백 준비 ---
+    FEEDBACK_STR = None
+    
+    if user_type == 'CHILD':
+        FEEDBACK_STR = FEEDBACK_CHILD
+    elif user_type == 'ADULT':
+        FEEDBACK_STR = FEEDBACK_ADULT
+    elif user_type == 'FOREIGN':
+        FEEDBACK_STR = FEEDBACK_FOREIGN
+    else:
+        FEEDBACK_STR = FEEDBACK_ADULT
+        
     # --- 1. 이미지 데이터 준비 ---
     try:
         # 바이트 데이터를 Pillow 이미지로 열고, 채널을 RGBA로 통일
@@ -113,26 +127,26 @@ def check_char_size_new(img_tot):
     errors = []
     # CASE 1: 둘 다 너무 클 때
     if is_too_wide and is_too_tall:
-        msg = f"글자가 너무 커요... => (너비:{ratio_x:.2f}, 높이:{ratio_y:.2f})"
+        msg = FEEDBACK_STR['TOO_BIG'] + '\n' + FEEDBACK_STR['TOO_BIG_NORMAL']
         errors.append(msg)
     # CASE 2: 둘 다 너무 작을 때
     elif is_too_narrow and is_too_short:
-        msg = f"글자가 너무 작아요... => (너비:{ratio_x:.2f}, 높이:{ratio_y:.2f})"
+        msg = FEEDBACK_STR['TOO_SMALL'] + '\n' + FEEDBACK_STR['TOO_SMALL_NORMAL']
         errors.append(msg)
     # CASE 3: 그 외 개별적인 오류들
     else:
         if is_too_wide:
-            msg = f"글씨가 가로로 너무 커요... )"
+            msg = FEEDBACK_STR['TOO_BIG_HORIZONTAL']
             errors.append(msg)
         elif is_too_narrow:
-            msg = f"글씨가 가로로 너무 작아요... )"
+            msg = FEEDBACK_STR['TOO_SMALL_HORIZONTAL']
             errors.append(msg)
 
         if is_too_tall:
-            msg = f"글씨가 세로로 너무 커요... )"
+            msg = FEEDBACK_STR['TOO_BIG_VERTICAL']
             errors.append(msg)
         elif is_too_short:
-            msg = f"글씨가 세로로 너무 작아요... )"
+            msg = FEECBACK_STR['TOO_BIG_VERTICAL']
             errors.append(msg)
 
         

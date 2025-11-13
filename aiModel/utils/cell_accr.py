@@ -13,15 +13,11 @@ from .feedback import ERROR_FEEDBACK_4TH_CHILD as FEEDBACK_CHILD
 from .feedback import ERROR_FEEDBACK_4TH_ADULT as FEEDBACK_ADULT
 from .feedback import ERROR_FEEDBACK_4TH_FOREIGN as FEEDBACK_FOREIGN
 
-"""
 
-# 글자의 구도 종류 고르는 함수. 가-0 갈-1 두-2 둡-3
 
-def get_char_type(y):
-    type = 0
 
-    return type
-"""
+
+
 
 def get_char_acc(images, phoneme_img_list, stroke_points, practice_syllabus, user_type):
     return get_char_acc_integrated(images, phoneme_img_list, stroke_points, practice_syllabus, user_type) #최종 통합 버전 사용
@@ -273,14 +269,14 @@ def get_char_acc_integrated(img_tot, images, stroke_counts, practice_syllabus, u
 
         # 크기 검사 (상위 검사)
         if current_size_ratio > ans_size_ratio * TOLERANCE_UPPER:
-            errors.append(f"{name}" + FEEDBACK_STR['TOO_BIG'])
+            errors.append(f"{char_decom[0][i]}" + FEEDBACK_STR['TOO_BIG'])
             # 가로세로 비율 검사 (하위 검사)
             if aspect_ratio > ans_aspect_ratio * TOLERANCE_UPPER: errors.append(FEEDBACK_STR['TOO_BIG_HORIZONTAL'])
             elif aspect_ratio < ans_aspect_ratio * TOLERANCE_LOWER: errors.append(FEEDBACK_STR['TOO_BIG_VERTICAL'])
             else: errors.append(FEEDBACK_STR['TOO_BIG_NORMAL'])
         
         elif current_size_ratio < ans_size_ratio * TOLERANCE_LOWER:
-            errors.append(f"{name}" + FEEDBACK_STR['TOO_SMALL'])
+            errors.append(f"{char_decom[0][i]}" + FEEDBACK_STR['TOO_SMALL'])
             # 가로세로 비율 검사 (하위 검사) 
             if aspect_ratio > ans_aspect_ratio * TOLERANCE_UPPER: errors.append(FEEDBACK_STR['TOO_SMALL_VERTICAL'])
             elif aspect_ratio < ans_aspect_ratio * TOLERANCE_LOWER: errors.append(FEEDBACK_STR['TOO_SMALL_HORIZONTAL'])

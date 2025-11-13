@@ -49,7 +49,7 @@ def evaluate_character(passed_ocr, images, stroke_counts, stroke_points, practic
 
 
     # 2차 필터: 전체 형태 (크기 및 비율)
-    passed, reason, stage2_debug_state = check_shape(img_tot)
+    passed, reason, stage2_debug_state = check_shape(img_tot, user_type)
     if not passed:
         error_stage += "1"
         error_reason[1] = reason
@@ -91,7 +91,7 @@ def evaluate_character(passed_ocr, images, stroke_counts, stroke_points, practic
 
 
 # 2차 필터: 전체 형태 (크기 및 비율)
-def check_shape(img_tot, version = "new"):
+def check_shape(img_tot, user_type, version = "new"):
     """
     병합된 글자 이미지의 크기/비율을 판단하는 함수 (2차 필터)
 
@@ -105,7 +105,7 @@ def check_shape(img_tot, version = "new"):
             - str: 디버그용 내부 상태
     """
 
-    is_passed, reason, debug_msg = check_char_size(img_tot , version)
+    is_passed, reason, debug_msg = check_char_size(img_tot , user_type, version)
 
     return is_passed, reason, debug_msg
 

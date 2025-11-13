@@ -50,7 +50,7 @@ async def evaluate_handwriting(payload: ResultCreate,  db: Session = Depends(get
         stroke_counts = payload.detailed_strokecounts.get(cell_id)
         stroke_points = payload.firstandlast_stroke.get(cell_id)
         practice_syllabus = payload.practice_text[int(cell_id)]
-        user_type = payload.user_type.get(cell_id)
+        user_type = payload.user_type
 
         # 1. 이미지 디코딩
         images = decode_base64_image_list(cell_images)

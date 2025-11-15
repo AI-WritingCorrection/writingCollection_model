@@ -53,11 +53,13 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
-    # ports: # 디버깅 목적으로 DB에 직접 접속해야 할 때만 주석 해제
+    ports: # 디버깅 목적으로 DB에 직접 접속해야 할 때만 주석 해제
       - "5432:5432"
     volumes:
       # 데이터베이스 데이터를 EC2 호스트에 영속적으로 저장하기 위한 볼륨
       - postgres_data:/var/lib/postgresql/data
+      - ./postgresql.conf.custom:/var/lib/postgresql/data/postgresql.conf
+      - ./pg_hba.conf.custom:/var/lib/postgresql/data/pg_hba.conf
 
 
 # 데이터 영속성을 위한 볼륨 정의

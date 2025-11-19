@@ -11,7 +11,9 @@ from sqlalchemy import pool
 from alembic import context
 from dotenv import load_dotenv
 import os
+
 load_dotenv()
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -20,17 +22,15 @@ config = context.config
 database_url = os.getenv("DATABASE_URL")
 if not database_url:
     raise RuntimeError("환경변수 DATABASE_URL이 설정되지 않았습니다.")
-config.set_main_option("sqlalchemy.url", database_url)
+# URL에 '%' 문자가 포함되어 있을 경우를 대비하여 %%로 이스케이프 처리
+config.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
+# autogenerate를 위해 Base와 연결된 모든 모델을 import 해야 합니다.
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

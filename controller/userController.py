@@ -109,6 +109,8 @@ async def upload_profile_image(
             ext = "png"
         elif name.endswith(".webp"):
             ext = "webp"
+        elif name.endswith(".heic") or name.endswith(".heif"):
+            ext = "heic"
         else:
             raise HTTPException(status_code=415, detail="Unsupported media type")
   

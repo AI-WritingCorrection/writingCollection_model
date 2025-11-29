@@ -146,7 +146,7 @@ def check_char_size_new(img_tot, user_type):
             msg = FEEDBACK_STR['TOO_BIG_VERTICAL']
             errors.append(msg)
         elif is_too_short:
-            msg = FEECBACK_STR['TOO_BIG_VERTICAL']
+            msg = FEEDBACK_STR['TOO_BIG_VERTICAL']
             errors.append(msg)
 
         
@@ -155,3 +155,4 @@ def check_char_size_new(img_tot, user_type):
         return True, None, debug_msg
     else:
         return False, "\n".join(errors), debug_msg
+

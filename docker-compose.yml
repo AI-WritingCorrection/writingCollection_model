@@ -34,12 +34,16 @@ services:
     restart: always
     ports:
       - "80:80" # 외부 80번 포트를 Nginx 80번 포트로 연결
+      - "443:443" # 외부 443번 포트를 Nginx 443번 포트로 연결 (HTTPS)
     volumes:
       # 로컬의 nginx.conf 파일을 컨테이너의 설정 파일 위치에 마운트
-      # 이 파일이 로컬에 존재해야 함
       - ./nginx.conf:/etc/nginx/nginx.conf
       # 호스트(EC2)의 ./static 디렉터리를 컨테이너의 /app/static 디렉터리로 연결
       - ./static:/app/static
+      # Nginx 로그를 호스트(EC2)에서 확인할 수 있도록 로그 디렉터리 마운트(로그를 보고 위험한 ip 차단 등 관리 목적)
+      - ./logs:/var/log/nginx
+      # SSL 인증서 디렉토리 마운트
+      - ./certs:/etc/nginx/certs
     depends_on:
       - fastapi
 

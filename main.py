@@ -1,13 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-import controller.evaluation  as evaluate
+import controller.evaluation as evaluate
 import controller.auth as auth
 import controller.get_fromDB as loadData
 import controller.userController as loadUser
 import controller.text_generator as text_generator
 
-#http://127.0.0.1:8000/docs
 app = FastAPI(title="AI-HandWriting-Evaluation")
 app.include_router(evaluate.router, prefix="/api/step", tags=["Evaluation"])
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
